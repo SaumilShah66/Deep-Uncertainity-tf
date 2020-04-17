@@ -67,6 +67,22 @@ class MaxPool2d(nn.Module):
         outputs_mean, outputs_variance = self._max_pool_2x1(z_mean, z_variance)
         return outputs_mean, outputs_variance
 
+class ReLU(nn.Module):
+    def __init__(self, keep_variance_fn=None):
+        super(ReLU, self).__init__()
+        self._keep_variance_fn = keep_variance_fn
+
+    def forward(self, features_mean, features_variance):
+        features_stddev = torch.sqrt(features_variance)
+        div = features_mean / features_stddev
+        pdf = normpdf(div)
+        cdf = normcdf(div)
+        outputs_mean = features_mean * cdf + features_stddev * pdf
+        outputs_variance = (features_mean ** 2 + features_variance) * cdf \
+                           + features_mean * features_stddev * pdf - outputs_mean ** 2
+        if self._keep_variance_fn is not None:
+            outputs_variance = self._keep_variance_fn(outputs_variance)
+        return outputs_mean, outputs_variance
 
 
 # if __name__ == "__main__":

@@ -26,7 +26,16 @@ def MaxPool2dTest(mean, variance):
 	print(l[1])	
 	pass
 
-mean = torch.tensor([[1,  2,  3,  4],
+def ReLUTest(mean, variance):
+	relu = ReLU()
+	l = relu(mean, variance)
+	print("Mean " + "-"*20)
+	print(l[0])
+	print("Variance " + "-"*20)
+	print(l[1])
+	pass
+
+mean = torch.tensor([[-1,  2,  3,  4],
 					  [5,  6,  7,  8],
 					  [9, 10, 11, 12],
 					  [13, 14, 15, 16]], dtype=torch.float)
@@ -35,4 +44,5 @@ kernel_size = 2
 mean = mean.reshape(1,1,4,4)
 variance = variance.reshape(1,1,4,4)
 # AvgPooledTest(mean, variance, kernel_size)
-MaxPool2dTest(mean, variance)
+# MaxPool2dTest(mean, variance)
+ReLUTest(mean, variance)
