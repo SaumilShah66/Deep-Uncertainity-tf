@@ -1,6 +1,7 @@
 import tensorflow as tf
 import numpy as np
 from numbers import Number
+from maths import normpdf, normcdf
 
 def test(self, block, num_blocks, num_classes=10, noise_variance=1e-3, min_variance=1e-3, initialize_msra=False):
     self.keep_variance_fn = lambda x: keep_variance(x, min_variance=min_variance)
@@ -8,26 +9,10 @@ def test(self, block, num_blocks, num_classes=10, noise_variance=1e-3, min_varia
     self.in_planes = 64
     return self.keep_variance_fn
 
-def normcdf(value, mu=0.0, stddev=1.0):
-    sinv = (1.0 / stddev) if isinstance(stddev, Number) else tf.reciprocal(stddev)
-    return 0.5 * (1.0 + tf.erf((value - mu) * sinv / tf.cast(np.sqrt(2.0), tf.float64)))
-
-def _normal_log_pdf(value, mu, stddev):
-    var = (stddev ** 2)
-    pi = tf.constant(np.pi)
-    log_scale = np.log(stddev) if isinstance(stddev, Number) else tf.log(stddev)
-    return -((value - mu) ** 2) / (2.0*var) - log_scale - tf.log(tf.cast(tf.sqrt(2.0*pi), tf.float64))
-
-
-# Tested against Matlab: Works correctly!
-def normpdf(value, mu=0.0, stddev=1.0):
-    return tf.exp(_normal_log_pdf(value, mu, stddev))
-
 class AvgPool2d(tf.keras.Model):
     def __init__(self, keep_variance_fn=None):
         super(AvgPool2d, self).__init__()
         self._keep_variance_fn = keep_variance_fn
-
 
     def call(self, input_mean, inputs_variance, pool_size):
         pool_layer = tf.keras.layers.AvgPool2D(pool_size=pool_size)
@@ -79,6 +64,23 @@ class MaxPool2d(tf.keras.Model):
     def call(self, input_mean, input_variance):
         z_mean, z_variance = self._max_pool_1x2(input_mean, input_variance)
         output_mean, output_variance = self._max_pool_2x1(z_mean, z_variance)
+        return output_mean, output_variance
+
+class ReLU(tf.keras.Model):
+    def __init__(self, keep_variance_fn=None):
+        super(ReLU, self).__init__()
+        self._keep_variance_fn = keep_variance_fn
+
+    def call(self, feature_mean, feature_variance):
+        feature_stddev = tf.cast(tf.sqrt(feature_variance), tf.float64)
+        div = feature_mean / feature_stddev
+        pdf = normpdf(div)
+        cdf = normcdf(div)
+        output_mean = feature_mean * cdf + feature_stddev * pdf
+        output_variance = (feature_mean ** 2 + feature_variance) * cdf \
+                           + feature_mean * feature_stddev * pdf - output_mean ** 2
+        if self._keep_variance_fn is not None:
+            output_variance = self._keep_variance_fn(output_variance)
         return output_mean, output_variance
 
 
