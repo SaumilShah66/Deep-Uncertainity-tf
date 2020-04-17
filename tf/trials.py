@@ -13,15 +13,15 @@ class AvgPool2d(tf.keras.Model):
 		self._keep_variance_fn = keep_variance_fn
 
 		
-	def call(self, inputs_mean, inputs_variance, pool_size):
+	def call(self, input_mean, inputs_variance, pool_size):
 		pool_layer = tf.keras.layers.AvgPool2D(pool_size=pool_size)
-		outputs_mean = pool_layer(inputs_mean)
-		outputs_variance = pool_layer(inputs_variance)
-		shape = inputs_mean.shape.as_list()
-		outputs_variance = outputs_variance/(shape[1]*shape[2])
+		output_mean = pool_layer(input_mean)
+		output_variance = pool_layer(inputs_variance)
+		shape = input_mean.shape.as_list()
+		output_variance = output_variance/(shape[1]*shape[2])
 		if self._keep_variance_fn is not None:
-			outputs_variance = self._keep_variance_fn(outputs_variance)
-		return outputs_mean, outputs_variance
+			output_variance = self._keep_variance_fn(output_variance)
+		return output_mean, output_variance
 
 
 # class AvgPool2d(nn.Module):
