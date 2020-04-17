@@ -161,22 +161,26 @@
       <screen x="65" y="24" width="1855" height="1056" />
     </state>
     <state x="807" y="235" key="EnvironmentVariablesDialog/65.24.1855.1056@65.24.1855.1056" timestamp="1587092913455" />
-    <state width="1827" height="283" key="GridCell.Tab.0.bottom" timestamp="1587150998798">
+    <state width="1827" height="283" key="GridCell.Tab.0.bottom" timestamp="1587161018810">
       <screen x="65" y="24" width="1855" height="1056" />
     </state>
-    <state width="1827" height="283" key="GridCell.Tab.0.bottom/65.24.1855.1056@65.24.1855.1056" timestamp="1587150998798" />
-    <state width="1827" height="283" key="GridCell.Tab.0.center" timestamp="1587150998797">
+    <state width="1827" height="283" key="GridCell.Tab.0.bottom/65.24.1855.1056@65.24.1855.1056" timestamp="1587161018810" />
+    <state width="1827" height="283" key="GridCell.Tab.0.center" timestamp="1587161018808">
       <screen x="65" y="24" width="1855" height="1056" />
     </state>
-    <state width="1827" height="283" key="GridCell.Tab.0.center/65.24.1855.1056@65.24.1855.1056" timestamp="1587150998797" />
-    <state width="1827" height="283" key="GridCell.Tab.0.left" timestamp="1587150998796">
+    <state width="1827" height="283" key="GridCell.Tab.0.center/65.24.1855.1056@65.24.1855.1056" timestamp="1587161018808" />
+    <state width="1827" height="283" key="GridCell.Tab.0.left" timestamp="1587161018808">
       <screen x="65" y="24" width="1855" height="1056" />
     </state>
-    <state width="1827" height="283" key="GridCell.Tab.0.left/65.24.1855.1056@65.24.1855.1056" timestamp="1587150998796" />
-    <state width="1827" height="283" key="GridCell.Tab.0.right" timestamp="1587150998797">
+    <state width="1827" height="283" key="GridCell.Tab.0.left/65.24.1855.1056@65.24.1855.1056" timestamp="1587161018808" />
+    <state width="1827" height="283" key="GridCell.Tab.0.right" timestamp="1587161018810">
       <screen x="65" y="24" width="1855" height="1056" />
     </state>
-    <state width="1827" height="283" key="GridCell.Tab.0.right/65.24.1855.1056@65.24.1855.1056" timestamp="1587150998797" />
+    <state width="1827" height="283" key="GridCell.Tab.0.right/65.24.1855.1056@65.24.1855.1056" timestamp="1587161018810" />
+    <state x="515" y="84" width="953" height="907" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1587152866189">
+      <screen x="65" y="24" width="1855" height="1056" />
+    </state>
+    <state x="515" y="84" width="953" height="907" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/65.24.1855.1056@65.24.1855.1056" timestamp="1587152866189" />
     <state x="724" y="436" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1587093122393">
       <screen x="65" y="24" width="1855" height="1056" />
     </state>
@@ -185,5 +189,9 @@
       <screen x="65" y="24" width="1855" height="1056" />
     </state>
     <state x="791" y="274" key="refactoring.ChangeSignatureDialog/65.24.1855.1056@65.24.1855.1056" timestamp="1587093549576" />
+    <state x="571" y="45" width="840" height="1034" key="search.everywhere.popup" timestamp="1587157267680">
+      <screen x="65" y="24" width="1855" height="1056" />
+    </state>
+    <state x="571" y="45" width="840" height="1034" key="search.everywhere.popup/65.24.1855.1056@65.24.1855.1056" timestamp="1587157267680" />
   </component>
 </project>
