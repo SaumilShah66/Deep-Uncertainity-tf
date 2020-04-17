@@ -44,6 +44,15 @@ def LeakyReLUTest(mean, variance):
 	print(l[1])
 	pass
 
+def DropoutTest(mean, variance):
+	drop = Dropout()
+	l = drop(mean, variance)
+	print("Mean " + "-"*20)
+	print(l[0])
+	print("Variance " + "-"*20)
+	print(l[1])
+	pass
+
 mean = torch.tensor([[-1,  2,  3,  4],
 					  [5,  6,  7,  8],
 					  [9, 10, 11, 12],
@@ -55,4 +64,5 @@ variance = variance.reshape(1,1,4,4)
 # AvgPooledTest(mean, variance, kernel_size)
 # MaxPool2dTest(mean, variance)
 # ReLUTest(mean, variance)
-LeakyReLUTest(mean, variance)
+# LeakyReLUTest(mean, variance)
+DropoutTest(mean, variance)

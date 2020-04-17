@@ -113,6 +113,31 @@ class LeakyReLU(nn.Module):
             outputs_variance = self._keep_variance_fn(outputs_variance)
         return outputs_mean, outputs_variance
 
+class Dropout(nn.Module):
+    """ADF implementation of nn.Dropout2d"""
+    def __init__(self, p: float = 0.5, keep_variance_fn=None, inplace=False):
+        super(Dropout, self).__init__()
+        self._keep_variance_fn = keep_variance_fn
+        self.inplace = inplace
+        if p < 0 or p > 1:
+            raise ValueError("dropout probability has to be between 0 and 1, " "but got {}".format(p))
+        self.p = p
 
+    def forward(self, inputs_mean, inputs_variance):
+        if self.training:
+            binary_mask = torch.ones_like(inputs_mean)
+            binary_mask = F.dropout2d(binary_mask, self.p, self.training, self.inplace)
+            
+            outputs_mean = inputs_mean*binary_mask
+            outputs_variance = inputs_variance*binary_mask**2
+            
+            if self._keep_variance_fn is not None:
+                outputs_variance = self._keep_variance_fn(outputs_variance)
+            return outputs_mean, outputs_variance
+        
+        outputs_variance = inputs_variance
+        if self._keep_variance_fn is not None:
+            outputs_variance = self._keep_variance_fn(outputs_variance)
+        return inputs_mean, outputs_variance
 
 # if __name__ == "__main__":

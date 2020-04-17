@@ -115,7 +115,7 @@ class LeakyReLU(tf.keras.Model):
 
 
 class Dropout(tf.keras.Model):
-	def __init__(self, p: float = 0.5, keep_variance_fn=None, inplace=False):
+	def __init__(self, p = 0.5, keep_variance_fn=None, inplace=False):
 		super(Dropout, self).__init__()
 		self._keep_variance_fn = keep_variance_fn
 		self.inplace = inplace
