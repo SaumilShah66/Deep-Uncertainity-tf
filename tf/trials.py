@@ -79,7 +79,7 @@ class MaxPool2d(tf.keras.Model):
     def call(self, input_mean, input_variance):
         z_mean, z_variance = self._max_pool_1x2(input_mean, input_variance)
         output_mean, output_variance = self._max_pool_2x1(z_mean, z_variance)
-        return output_mean, output_variance, z_mean
+        return output_mean, output_variance
 
 
 

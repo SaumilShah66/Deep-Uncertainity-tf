@@ -22,8 +22,6 @@ def maxPool2dTest(mean, variance):
 	print(outMean)
 	print("Variance " + "-" * 20)
 	print(outVar)
-	print('zmean')
-	print(zmean)
 	pass
 
 mean_ = np.array([[1,  2,  3,  4], [5,  6,  7,  8], [9, 10, 11, 12], [13, 14, 15, 16]], dtype=np.float64)
