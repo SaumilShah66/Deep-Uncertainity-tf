@@ -15,7 +15,7 @@ def normcdf(value, mu=0.0, stddev=1.0):
 def _normal_log_pdf(value, mu, stddev):
     var = (stddev ** 2)
     log_scale = tf.log(stddev) if isinstance(stddev, Number) else tf.log(stddev)
-    return -((value - mu) ** 2) / (2.0*var) - log_scale - np.log(tf.sqrt(2.0*np.pi))
+    return -((value - mu) ** 2) / (2.0*var) - log_scale - tf.log(tf.sqrt(2.0*tf.pi))
 
 
 # Tested against Matlab: Works correctly!
@@ -75,27 +75,10 @@ class MaxPool2d(tf.keras.Model):
             mu_a, mu_b, var_a, var_b)
         return output_mean, output_variance
 
-    def forward(self, input_mean, input_variance):
+    def call(self, input_mean, input_variance):
         z_mean, z_variance = self._max_pool_1x2(input_mean, input_variance)
         output_mean, output_variance = self._max_pool_2x1(z_mean, z_variance)
         return output_mean, output_variance
 
-# class MaxPool2d(nn.Module):
-#     def __init__(self, keep_variance_fn=None):
-#         super(MaxPool2d, self).__init__()
-#         self._keep_variance_fn = keep_variance_fn
-#
-#     def _max_pool_internal(self, mu_a, mu_b, var_a, var_b):
-#         stddev = torch.sqrt(var_a + var_b)
-#         ab = mu_a - mu_b
-#         alpha = ab / stddev
-#         pdf = normpdf(alpha)
-#         cdf = normcdf(alpha)
-#         z_mu = stddev * pdf + ab * cdf + mu_b
-#         z_var = ((mu_a + mu_b) * stddev * pdf +
-#                  (mu_a ** 2 + var_a) * cdf +
-#                  (mu_b ** 2 + var_b) * (1.0 - cdf) - z_mu ** 2)
-#         if self._keep_variance_fn is not None:
-#             z_var = self._keep_variance_fn(z_var)
-#         return z_mu, z_var
+
 
