@@ -10,12 +10,13 @@ def test(self, block, num_blocks, num_classes=10, noise_variance=1e-3, min_varia
 
 def normcdf(value, mu=0.0, stddev=1.0):
     sinv = (1.0 / stddev) if isinstance(stddev, Number) else tf.reciprocal(stddev)
-    return 0.5 * (1.0 + tf.erf((value - mu) * sinv / tf.sqrt(2.0)))
+    return 0.5 * (1.0 + tf.erf((value - mu) * sinv / tf.cast(np.sqrt(2.0), tf.float64)))
 
 def _normal_log_pdf(value, mu, stddev):
     var = (stddev ** 2)
-    log_scale = tf.log(stddev) if isinstance(stddev, Number) else tf.log(stddev)
-    return -((value - mu) ** 2) / (2.0*var) - log_scale - tf.log(tf.sqrt(2.0*tf.pi))
+    pi = tf.constant(np.pi)
+    log_scale = np.log(stddev) if isinstance(stddev, Number) else tf.log(stddev)
+    return -((value - mu) ** 2) / (2.0*var) - log_scale - tf.log(tf.cast(tf.sqrt(2.0*pi), tf.float64))
 
 
 # Tested against Matlab: Works correctly!
@@ -58,19 +59,19 @@ class MaxPool2d(tf.keras.Model):
         return z_mu, z_var
 
     def _max_pool_1x2(self, input_mean, input_variance):
-        mu_a = input_mean[:, :, :, 0::2]
-        mu_b = input_mean[:, :, :, 1::2]
-        var_a = input_variance[:, :, :, 0::2]
-        var_b = input_variance[:, :, :, 1::2]
+        mu_a = input_mean[:, :,0::2,:]
+        mu_b = input_mean[:, :,1::2, :]
+        var_a = input_variance[:, :, 0::2, :]
+        var_b = input_variance[:, :, 1::2, :]
         output_mean, output_variance = self._max_pool_internal(
             mu_a, mu_b, var_a, var_b)
         return output_mean, output_variance
 
     def _max_pool_2x1(self, input_mean, input_variance):
-        mu_a = input_mean[:, :, 0::2, :]
-        mu_b = input_mean[:, :, 1::2, :]
-        var_a = input_variance[:, :, 0::2, :]
-        var_b = input_variance[:, :, 1::2, :]
+        mu_a = input_mean[:, 0::2, :, :]
+        mu_b = input_mean[:, 1::2, :, :]
+        var_a = input_variance[:, 0::2, :, :]
+        var_b = input_variance[:, 1::2, :, :]
         output_mean, output_variance = self._max_pool_internal(
             mu_a, mu_b, var_a, var_b)
         return output_mean, output_variance
@@ -78,7 +79,7 @@ class MaxPool2d(tf.keras.Model):
     def call(self, input_mean, input_variance):
         z_mean, z_variance = self._max_pool_1x2(input_mean, input_variance)
         output_mean, output_variance = self._max_pool_2x1(z_mean, z_variance)
-        return output_mean, output_variance
+        return output_mean, output_variance, z_mean
 
 
 
