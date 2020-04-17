@@ -12,7 +12,6 @@ class AvgPool2d(tf.keras.Model):
 		super(AvgPool2d, self).__init__()
 		self._keep_variance_fn = keep_variance_fn
 
-		
 	def call(self, input_mean, inputs_variance, pool_size):
 		pool_layer = tf.keras.layers.AvgPool2D(pool_size=pool_size)
 		output_mean = pool_layer(input_mean)
@@ -24,17 +23,3 @@ class AvgPool2d(tf.keras.Model):
 		return output_mean, output_variance
 
 
-# class AvgPool2d(nn.Module):
-#     def __init__(self, keep_variance_fn=None):
-#         super(AvgPool2d, self).__init__()
-#         self._keep_variance_fn = keep_variance_fn
-		
-#     def forward(self, inputs_mean, inputs_variance, kernel_size):
-#         outputs_mean = F.avg_pool2d(inputs_mean, kernel_size)
-#         outputs_variance = F.avg_pool2d(inputs_variance, kernel_size)
-#         outputs_variance = outputs_variance/(inputs_mean.size(2)*inputs_mean.size(3))
-		
-#         if self._keep_variance_fn is not None:
-#             outputs_variance = self._keep_variance_fn(outputs_variance)
-		
-#         return outputs_mean, outputs_variance
