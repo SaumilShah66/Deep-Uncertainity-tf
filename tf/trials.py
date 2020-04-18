@@ -188,9 +188,7 @@ class Conv2d(tf.keras.Model):
 		self.name_ = name_
 		self.weight_shape = [self.kernel_size, self.kernel_size, in_channels, out_channels]
 		# print(self.weights)
-		self.weights_ = tf.get_variable(name=self.name_+"_Weight", 
-			dtype=tf.float64, 
-			shape=list(self.weight_shape))
+		self.weights_ = tf.get_variable(name=self.name_+"_Weight", dtype=tf.float64, shape=list(self.weight_shape))
 		self.biases = tf.Variable(np.zeros(out_channels), dtype=tf.float64)		
 
 	def call(self, inputs_mean, inputs_variance):
@@ -216,3 +214,73 @@ def concatenate_as(tensor_list, tensor_as, dim, mode="bilinear"):
 	means = tf.concat(means, dim=dim)
 	variances = tf.concat(variances, dim=dim)
 	return means, variances
+
+
+def outShape(stride, filter_size, padding, input_length, output_padding=None):
+	length = np.ones(2, dtype =np.int32)
+	if output_padding is None:
+		print("H1")
+		if padding == 'VALID' or padding == 'valid':
+			# note the call to `max` below!
+			length[0] = input_length[0] * stride[1] + max(filter_size - stride[1], 0)
+			length[1] = input_length[1] * stride[2] + max(filter_size - stride[2], 0)
+		elif padding == 'FULL' or padding == 'full':
+			length[0] = input_length[0] * stride[1] - (stride[1] + filter_size - 2)
+			length[1] = input_length[1] * stride[2] - (stride[2] + filter_size - 2)
+		elif padding == 'SAME' or padding == 'same':
+			length[0] = input_length[0] * stride[1]
+			length[1] = input_length[1] * stride[2]
+			print(input_length[0] * stride[1])
+	else:
+		print("H2")
+		if padding == 'SAME' or padding == 'same':
+		  pad = filter_size // 2
+		elif padding == 'VALID' or padding == 'valid':
+		  pad = 0
+		elif padding == 'FULL' or padding == 'full':
+		  pad = filter_size - 1
+
+		length[0] = ((input_length[0] - 1) * stride[1] + filter_size - 2 * pad +
+				  output_padding)
+		length[1] = ((input_length[1] - 1) * stride[2] + filter_size - 2 * pad +
+				  output_padding)
+	return length
+
+class ConvTranspose2d(tf.keras.Model):
+	def __init__(self, in_channels, out_channels, kernel_size, stride=1,
+				 padding='SAME', output_padding='SAME', groups=1, bias=True, dilation=1,
+				 keep_variance_fn=None, name_='convTrans', output_size=None):
+		super(ConvTranspose2d, self).__init__()
+		self._keep_variance_fn = keep_variance_fn
+		self.kernel_size = kernel_size
+		self.stride = [1,stride, stride,1]
+		# self.stride = [stride]
+		self.padding = padding
+		self.output_padding = output_padding
+		self.dilation = dilation
+		self.name_ = name_
+		# self.outShape = tf.convert_to_tensor(output_size, dtype = tf.int32)
+		self.weight_shape = [self.kernel_size, self.kernel_size, out_channels, in_channels]
+		# print(self.weights)
+		self.weights_ = tf.get_variable(name=self.name_+"_Weight", dtype=tf.float64, shape=list(self.weight_shape))
+		self.biases = tf.Variable(np.zeros(in_channels), dtype=tf.float64)
+
+
+	def call(self, inputs_mean, inputs_variance, output_size=None):
+		input_shape = inputs_mean.shape.as_list()
+		outputShape = outShape(self.stride, self.kernel_size, self.padding, [input_shape[1],input_shape[2]])
+		self.outputShape = [1, outputShape[0], outputShape[1], 1]
+		# outShape = [1,input_shape[1],input_shape[2],1]
+		# outShape = tf.convert_to_tensor(outShape, dtype = tf.int32)
+		## For mean
+		outputs_mean = tf.nn.conv2d_transpose(value= inputs_mean, filter = self.weights_,output_shape=self.outputShape, strides= self.stride,
+		 padding= self.padding, name = self.name_)
+		outputs_mean = tf.nn.bias_add(outputs_mean, self.biases)
+		## For variance
+		outputs_variance = tf.nn.conv2d_transpose(value= inputs_variance, output_shape=self.outputShape, filter = self.weights_**2, strides= self.stride,
+		 padding= self.padding, name = self.name_)
+		outputs_variance = tf.nn.bias_add(outputs_variance, self.biases)
+		if self._keep_variance_fn is not None:
+			outputs_variance = self._keep_variance_fn(outputs_variance)
+		return outputs_mean, outputs_variance
+
