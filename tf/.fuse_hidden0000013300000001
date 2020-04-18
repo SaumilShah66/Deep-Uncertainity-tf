@@ -216,10 +216,10 @@ def concatenate_as(tensor_list, tensor_as, dim, mode="bilinear"):
 	return means, variances
 
 
-def outShape(strideList, filter_size, padding, input_length, output_padding=0):
+def outShape(strideList, filter_size, padding, input_length, output_padding=None):
 	# strideList is of the form [1,h,w,1]
 	length = np.ones(2, dtype =np.int32)
-	if output_padding == 0:
+	if output_padding is None:
 		if padding == 'VALID' or padding == 'valid':
 			# note the call to `max` below!
 			length[0] = input_length[0] * strideList[1] + max(filter_size - strideList[1], 0)
@@ -246,7 +246,7 @@ def outShape(strideList, filter_size, padding, input_length, output_padding=0):
 
 class ConvTranspose2d(tf.keras.Model):
 	def __init__(self, in_channels, out_channels, kernel_size, stride=1,
-				 padding='SAME', output_padding=0, groups=1, bias=True, dilation=1,
+				 padding='SAME', output_padding='SAME', groups=1, bias=True, dilation=1,
 				 keep_variance_fn=None, name_='convTrans', output_size=None):
 		super(ConvTranspose2d, self).__init__()
 		self._keep_variance_fn = keep_variance_fn
@@ -256,16 +256,15 @@ class ConvTranspose2d(tf.keras.Model):
 		self.output_padding = output_padding
 		self.dilation = dilation
 		self.name_ = name_
-		self.out_channels = out_channels
 		self.weight_shape = [self.kernel_size, self.kernel_size, out_channels, in_channels]
 		# print(self.weights)
 		self.weights_ = tf.get_variable(name=self.name_+"_Weight", dtype=tf.float64, shape=list(self.weight_shape))
-		self.biases = tf.Variable(np.zeros(out_channels), dtype=tf.float64)
+		self.biases = tf.Variable(np.zeros(in_channels), dtype=tf.float64)
 
 	def call(self, inputs_mean, inputs_variance, output_size=None):
 		input_shape = inputs_mean.shape.as_list()
-		outputShape = outShape(self.stride, self.kernel_size, self.padding, [input_shape[1],input_shape[2]], self.output_padding)
-		self.outputShape = [input_shape[0], outputShape[0], outputShape[1], self.out_channels]
+		outputShape = outShape(self.stride, self.kernel_size, self.padding, [input_shape[1],input_shape[2]])
+		self.outputShape = [1, outputShape[0], outputShape[1], 1]
 		## For mean
 		outputs_mean = tf.nn.conv2d_transpose(value= inputs_mean, filter = self.weights_,output_shape=self.outputShape, strides= self.stride,
 		 padding= self.padding, name = self.name_)
@@ -277,3 +276,4 @@ class ConvTranspose2d(tf.keras.Model):
 		if self._keep_variance_fn is not None:
 			outputs_variance = self._keep_variance_fn(outputs_variance)
 		return outputs_mean, outputs_variance
+

@@ -5,7 +5,7 @@ try:
 	import cv2
 except:
 	import sys
-	sys.path.remove(sys.path[1])
+	sys.path.remove(sys.path[2])
 	import cv2
 
 def avgPool2dTest(mean, variance, pool_size):
@@ -100,13 +100,13 @@ pool_size = (2, 2)
 
 # avgPool2dTest(mean, variance, pool_size)
 # DropoutTest(mean, variance)
-img = cv2.imread('0.jpg',0)
-img = img.reshape(1,img.shape[0], img.shape[1],1)
-imgt = tf.convert_to_tensor(img, dtype = tf.float64)
-new = resize2D(imgt, [200,200])
-with tf.Session() as sess:
-	new1 = sess.run(new)
-	print(new1.shape)
+# img = cv2.imread('0.jpg',0)
+# img = img.reshape(1,img.shape[0], img.shape[1],1)
+# imgt = tf.convert_to_tensor(img, dtype = tf.float64)
+# new = resize2D(imgt, [200,200])
+# with tf.Session() as sess:
+# 	new1 = sess.run(new)
+# 	print(new1.shape)
 	# new2 = new1.reshape()
 # cv2.imwrite('new.jpg', new1)
 # ReLUTest(mean, variance)
