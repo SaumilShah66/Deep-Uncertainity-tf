@@ -92,8 +92,8 @@ def ConvTranspose2dTest(mean, variance):
 	pass
 
 def LinearTest(mean, variance):
-	linearLayer = Linear(4, 5)
-	l = linearLayer(mean, variance)
+	linearLayer = Linear()
+	l = linearLayer(mean, variance, 5)
 	with tf.Session() as sess:
 		sess.run(tf.global_variables_initializer())
 		sess.run(tf.local_variables_initializer())

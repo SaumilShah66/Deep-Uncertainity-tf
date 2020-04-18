@@ -280,27 +280,25 @@ class ConvTranspose2d(tf.keras.Model):
 
 
 class Linear(tf.keras.Model):
-	def __init__(self, in_features, out_features, bias=True, keep_variance_fn=None, name_='linear'):
+	def __init__(self, bias=True, keep_variance_fn=None, name_='linear'):
 		super(Linear, self).__init__()
 		self._keep_variance_fn = keep_variance_fn
-		self.in_features = in_features
-		self.out_features = out_features
-		self.weight_shape = [self.out_features, self.in_features]
 		self.biasStatus = bias
 		self.name_ = name_
-		# print(self.weights)
-		self.weights_ = tf.get_variable(name=self.name_+"_Weight", dtype=tf.float64, shape=list(self.weight_shape))
-		if bias:
-			self.biases = tf.Variable(np.zeros(self.out_features), dtype=tf.float64)
 
-	def call(self, inputs_mean, inputs_variance):
+	def call(self, inputs_mean, inputs_variance, out_features):
+		self.out_features = out_features
 		input_shape = inputs_mean.shape.as_list()
 		if len(input_shape)==4:
 			input_shape = [input_shape[1], input_shape[2]]
+		self.in_features = input_shape[1]
+		weight_shape = [self.out_features, self.in_features]
+		self.weights_ = tf.get_variable(name=self.name_+"_Weight", dtype=tf.float64, shape=list(weight_shape))			
 		inputs_mean = tf.reshape(inputs_mean, [input_shape[0], input_shape[1]])
 		inputs_variance = tf.reshape(inputs_variance, [input_shape[0], input_shape[1]])
 		outputs_mean = tf.matmul(inputs_mean, self.weights_, transpose_b=True)
 		if self.biasStatus:
+			self.biases = tf.Variable(np.zeros(self.out_features), dtype=tf.float64)
 			outputs_mean = tf.nn.bias_add(outputs_mean, self.biases)
 		outputs_variance = tf.matmul(inputs_variance, self.weights_**2, transpose_b=True)
 		if self._keep_variance_fn is not None:
