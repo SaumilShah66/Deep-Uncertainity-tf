@@ -163,4 +163,30 @@ class Conv2d(_ConvNd):
         return outputs_mean, outputs_variance
 
 
+class ConvTranspose2d(_ConvTransposeMixin, _ConvNd):
+    def __init__(self, in_channels, out_channels, kernel_size, stride=1,
+                 padding=0, output_padding=0, groups=1, bias=True, dilation=1,
+                 keep_variance_fn=None, padding_mode='zeros'):
+        self._keep_variance_fn = keep_variance_fn
+        kernel_size = _pair(kernel_size)
+        stride = _pair(stride)
+        padding = _pair(padding)
+        dilation = _pair(dilation)
+        output_padding = _pair(output_padding)
+        super(ConvTranspose2d, self).__init__(
+            in_channels, out_channels, kernel_size, stride, padding, dilation,
+            True, output_padding, groups, bias, padding_mode)
+
+    def forward(self, inputs_mean, inputs_variance, output_size=None):
+        output_padding = self._output_padding(inputs_mean, output_size, self.stride, self.padding, self.kernel_size)
+        outputs_mean = F.conv_transpose2d(
+            inputs_mean, self.weight, self.bias, self.stride, self.padding,
+            output_padding, self.groups, self.dilation)
+        outputs_variance = F.conv_transpose2d(
+            inputs_variance, self.weight ** 2, None, self.stride, self.padding,
+            output_padding, self.groups, self.dilation)
+        if self._keep_variance_fn is not None:
+            outputs_variance = self._keep_variance_fn(outputs_variance)
+        return outputs_mean, outputs_variance
+
 # if __name__ == "__main__":

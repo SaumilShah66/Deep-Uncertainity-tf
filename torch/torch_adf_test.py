@@ -53,6 +53,16 @@ def DropoutTest(mean, variance):
 	print(l[1])
 	pass
 
+def ConvTranspose2dTest(mean, variance):
+	deconv = ConvTranspose2d(1, 1, 3)
+	l = deconv(mean, variance)
+	print("Mean " + "-"*20)
+	print(l[0])
+	print("Variance " + "-"*20)
+	print(l[1])
+	print(l[0].shape)
+	pass
+
 mean = torch.tensor([[-1,  2,  3,  4],
 					  [5,  6,  7,  8],
 					  [9, 10, 11, 12],
@@ -65,4 +75,5 @@ variance = variance.reshape(1,1,4,4)
 # MaxPool2dTest(mean, variance)
 # ReLUTest(mean, variance)
 # LeakyReLUTest(mean, variance)
-DropoutTest(mean, variance)
+# DropoutTest(mean, variance)
+ConvTranspose2dTest(mean, variance)
