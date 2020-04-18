@@ -4,6 +4,34 @@ from numbers import Number
 from maths import normpdf, normcdf
 # from tensorflow.python.keras import backend as K
 
+###################
+## start interpolation.py
+###################
+
+def resize2D(inputs, size_targets, mode="bilinear"):
+	size_inputs = inputs.shape.as_list()
+	size_inputs = [size_inputs[1], size_inputs[2]]
+	h1, w1 = size_inputs[0], size_inputs[1]
+	h2, w2 = size_targets[0], size_targets[1]
+	if all([size_inputs == size_targets]):
+		return inputs  # nothing to do
+	elif any([size_targets < size_inputs]):
+		pool_size = (int(round(h1*1.0/h2)), int(round(w1*1.0/w2)))
+		pool_layer = tf.keras.layers.AvgPool2D(pool_size=pool_size, padding='same')
+		resized = pool_layer(inputs)
+	else:
+		pool_size = (int(round(h2 * 1.0 / h1)), int(round(w2 * 1.0 / w1)))
+		print('ppol', pool_size)
+		upLayer = tf.keras.layers.UpSampling2D(size=pool_size)
+		resized = upLayer(inputs= inputs)
+	return resized
+
+###################
+## end interpolation.py
+###################
+
+
+
 def test(self, block, num_blocks, num_classes=10, noise_variance=1e-3, min_variance=1e-3, initialize_msra=False):
 	self.keep_variance_fn = lambda x: keep_variance(x, min_variance=min_variance)
 	self._noise_variance = noise_variance
@@ -144,17 +172,17 @@ class Dropout(tf.keras.Model):
 
 class Conv2d(tf.keras.Model):
 	def __init__(self, in_channels, out_channels, kernel_size, stride=1,
-                 padding='SAME', dilation=1, groups=1, bias=True,
-                 keep_variance_fn=None, name='conv'):
+				 padding='SAME', dilation=1, groups=1, bias=True,
+				 keep_variance_fn=None, name='conv'):
 		self._keep_variance_fn = keep_variance_fn
 		self.kernel_size = (kernel_size, kernel_size)
-        self.stride = [stride, stride]
-        self.padding = padding
-        self.dilation = dilation
-        self.name = name
-        super(Conv2d, self).__init__()
+		self.stride = [stride, stride]
+		self.padding = padding
+		self.dilation = dilation
+		self.name = name
+		super(Conv2d, self).__init__()
 
-    def call(self, inputs_mean, inputs_variance):
+	def call(self, inputs_mean, inputs_variance):
 		outputs_mean = tf.nn.conv2d(input= inputs_mean, filter='TODO saumil', strides= self.stride,
 		 padding= self.padding, dilation= self.dilation, name = self.name)
 
@@ -162,8 +190,8 @@ class Conv2d(tf.keras.Model):
 		 padding= self.padding, dilation= self.dilation, name = self.name)
 
 		if self._keep_variance_fn is not None:
-            outputs_variance = self._keep_variance_fn(outputs_variance)
-        return outputs_mean, outputs_variance
+			outputs_variance = self._keep_variance_fn(outputs_variance)
+		return outputs_mean, outputs_variance
 
 
 

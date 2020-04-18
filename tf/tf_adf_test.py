@@ -1,6 +1,12 @@
 import tensorflow as tf 
 from trials import *
 import numpy as np 
+try:
+	import cv2
+except:
+	import sys
+	sys.path.remove(sys.path[1])
+	import cv2
 
 def avgPool2dTest(mean, variance, pool_size):
 	AvgPool2d_ = AvgPool2d()
@@ -64,4 +70,16 @@ mean = tf.convert_to_tensor(mean_)
 variance = tf.zeros_like(mean) + 0.001
 pool_size = (2, 2)
 # avgPool2dTest(mean, variance, pool_size)
-DropoutTest(mean, variance)
+# DropoutTest(mean, variance)
+img = cv2.imread('0.jpg',0)
+img = img.reshape(1,img.shape[0], img.shape[1],1)
+imgt = tf.convert_to_tensor(img, dtype = tf.float64)
+new = resize2D(imgt, [200,200])
+with tf.Session() as sess:
+	new1 = sess.run(new)
+	print(new1.shape)
+	# new2 = new1.reshape()
+# cv2.imwrite('new.jpg', new1)
+
+
+
