@@ -10,13 +10,13 @@ Done
 - [x] Maxpool2d
 - [x] AvePool2d
 - [ ] Softmax
-- [ ] ReLU
-- [ ] LeakyReLU
-- [ ] Dropout
+- [x] ReLU
+- [x] LeakyReLU
+- [x] Dropout
 - [ ] Linear
 - [ ] BatchNorm2d
-- [ ] Conv2d
+- [x] Conv2d
 - [ ] ConvTranspose2d
-- [ ] concatenate_as
+- [x] concatenate_as
 - [ ] Sequential
 
