@@ -4,9 +4,14 @@ from numbers import Number
 from maths import normpdf, normcdf
 # from tensorflow.python.keras import backend as K
 
-###################
+#########################
 ## start interpolation.py
-###################
+#########################
+
+def resize2D_as(inputs, output_as, mode="bilinear"):
+    size_targets = output_as.shape.as_list()
+	size_targets = [size_targets[1], size_targets[2]]
+    return resize2D(inputs, size_targets, mode=mode)
 
 def resize2D(inputs, size_targets, mode="bilinear"):
 	size_inputs = inputs.shape.as_list()
@@ -26,9 +31,9 @@ def resize2D(inputs, size_targets, mode="bilinear"):
 		resized = upLayer(inputs= inputs)
 	return resized
 
-###################
+#######################
 ## end interpolation.py
-###################
+#######################
 
 
 
