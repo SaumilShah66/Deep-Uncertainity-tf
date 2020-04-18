@@ -295,8 +295,12 @@ class Linear(tf.keras.Model):
 
 	def call(self, inputs_mean, inputs_variance):
 		input_shape = inputs_mean.shape.as_list()
-		inputs_mean = tf.reshape(inputs_mean, [input_shape[1], input_shape[2]])
-		inputs_variance = tf.reshape(inputs_variance, [input_shape[1], input_shape[2]])
+		if len(input_shape)==4:
+			input_shape = [input_shape[1], input_shape[2]]
+		elif len(input_shape) ==2:
+			pass
+		inputs_mean = tf.reshape(inputs_mean, [input_shape[0], input_shape[1]])
+		inputs_variance = tf.reshape(inputs_variance, [input_shape[0], input_shape[1]])
 		outputs_mean = tf.matmul(inputs_mean, self.weights_, transpose_b=True)
 		if self.biasStatus:
 			outputs_mean = tf.nn.bias_add(outputs_mean, self.biases)
