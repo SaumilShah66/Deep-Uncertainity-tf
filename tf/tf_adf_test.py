@@ -64,7 +64,7 @@ def DropoutTest(mean, variance):
 	pass
 
 def Conv2dTest(mean, variance):
-	conv = Conv2d_(in_channels=1, out_channels=1, kernel_size=3)
+	conv = Conv2d(in_channels=1, out_channels=1, kernel_size=3)
 	l = conv(mean, variance)
 	with tf.Session() as sess:
 		sess.run(tf.global_variables_initializer())

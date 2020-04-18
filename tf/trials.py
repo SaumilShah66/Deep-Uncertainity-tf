@@ -9,9 +9,9 @@ from maths import normpdf, normcdf
 #########################
 
 def resize2D_as(inputs, output_as, mode="bilinear"):
-    size_targets = output_as.shape.as_list()
+	size_targets = output_as.shape.as_list()
 	size_targets = [size_targets[1], size_targets[2]]
-    return resize2D(inputs, size_targets, mode=mode)
+	return resize2D(inputs, size_targets, mode=mode)
 
 def resize2D(inputs, size_targets, mode="bilinear"):
 	size_inputs = inputs.shape.as_list()
@@ -175,26 +175,11 @@ class Dropout(tf.keras.Model):
 			outputs_variance = self._keep_variance_fn(outputs_variance)
 		return inputs_mean, outputs_variance
 
-class Conv2d_(tf.keras.Model):
+class Conv2d(tf.keras.Model):
 	def __init__(self, in_channels, out_channels, kernel_size, stride=1,
 				 padding='SAME', dilation=1, groups=1, bias=True,
-				 keep_variance_fn=None, name='conv'):
-		self._keep_variance_fn = keep_variance_fn
-		self.kernel_size = (kernel_size, kernel_size)
-		self.stride = [stride, stride]
-		self.padding = padding
-		self.dilation = dilation
-		self.name = name
-		super(Conv2d, self).__init__()
-
-	def call(self, inputs_mean, inputs_variance):
-		outputs_mean = tf.nn.conv2d(input= inputs_mean, filter='TODO saumil', strides= self.stride,
-		 padding= self.padding, dilation= self.dilation, name = self.name)
-
-		outputs_variance = tf.nn.conv2d(input= inputs_variance, filter='TODO saumil', strides= self.stride,
-		 padding= self.padding, dilation= self.dilation, name = self.name)
 				 keep_variance_fn=None, name_='conv'):
-		super(Conv2d_, self).__init__()
+		super(Conv2d, self).__init__()
 		self._keep_variance_fn = keep_variance_fn
 		self.kernel_size = kernel_size
 		self.stride = [1,stride, stride,1]
@@ -206,7 +191,7 @@ class Conv2d_(tf.keras.Model):
 		self.weights_ = tf.get_variable(name=self.name_+"_Weight", 
 			dtype=tf.float64, 
 			shape=list(self.weight_shape))
-		self.biases = tf.Variable(np.zeros(out_channels), dtype=tf.float64)
+		self.biases = tf.Variable(np.zeros(out_channels), dtype=tf.float64)		
 
 	def call(self, inputs_mean, inputs_variance):
 		## For mean
@@ -226,8 +211,8 @@ class Conv2d_(tf.keras.Model):
 #### concatenate_as function not tested separately
 ##################################################
 def concatenate_as(tensor_list, tensor_as, dim, mode="bilinear"):
-    means = [resize2D_as(x[0], tensor_as[0], mode=mode) for x in tensor_list]
-    variances = [resize2D_as(x[1], tensor_as[0], mode=mode) for x in tensor_list]
-    means = tf.concat(means, dim=dim)
-    variances = tf.concat(variances, dim=dim)
-    return means, variances
+	means = [resize2D_as(x[0], tensor_as[0], mode=mode) for x in tensor_list]
+	variances = [resize2D_as(x[1], tensor_as[0], mode=mode) for x in tensor_list]
+	means = tf.concat(means, dim=dim)
+	variances = tf.concat(variances, dim=dim)
+	return means, variances
