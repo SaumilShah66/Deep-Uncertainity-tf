@@ -106,8 +106,8 @@ def LinearTest(mean, variance):
 	pass
 
 mean_ = np.array([[-1,  2,  3,  4], [5,  6,  7,  8], [9, 10, 11, 12], [13, 14, 15, 16]], dtype=np.float64)
-# mean_ = np.dstack([mean_, mean_])
-mean_ = np.reshape(mean_, (1,4,4,1))
+mean_ = np.dstack([mean_, mean_])
+mean_ = np.reshape(mean_, (-1,4,4,1))
 mean = tf.convert_to_tensor(mean_)
 variance = tf.zeros_like(mean) + 0.001
 pool_size = (2, 2)

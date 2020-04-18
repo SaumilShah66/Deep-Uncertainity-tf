@@ -290,7 +290,7 @@ class Linear(tf.keras.Model):
 		self.out_features = out_features
 		input_shape = inputs_mean.shape.as_list()
 		if len(input_shape)==4:
-			input_shape = [input_shape[1], input_shape[2]]
+			input_shape = [input_shape[0], input_shape[1]*input_shape[2]*input_shape[3]]
 		self.in_features = input_shape[1]
 		weight_shape = [self.out_features, self.in_features]
 		self.weights_ = tf.get_variable(name=self.name_+"_Weight", dtype=tf.float64, shape=list(weight_shape))			
