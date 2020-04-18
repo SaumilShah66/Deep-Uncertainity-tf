@@ -63,12 +63,25 @@ def DropoutTest(mean, variance):
 	print(outVar)
 	pass
 
+def Conv2dTest(mean, variance):
+	conv = Conv2d_(in_channels=1, out_channels=1, kernel_size=3)
+	l = conv(mean, variance)
+	with tf.Session() as sess:
+		sess.run(tf.global_variables_initializer())
+		sess.run(tf.local_variables_initializer())
+		outMean, outVar = sess.run(l)
+	print("Mean " + "-" * 20)
+	print(outMean)
+	print("Variance " + "-" * 20)
+	print(outVar)
+	pass	
 
 mean_ = np.array([[-1,  2,  3,  4], [5,  6,  7,  8], [9, 10, 11, 12], [13, 14, 15, 16]], dtype=np.float64)
-mean_ = np.reshape(mean_, (1,4,4,1))
+mean_ = np.reshape(mean_, (-1,4,4,1))
 mean = tf.convert_to_tensor(mean_)
 variance = tf.zeros_like(mean) + 0.001
 pool_size = (2, 2)
+
 # avgPool2dTest(mean, variance, pool_size)
 # DropoutTest(mean, variance)
 img = cv2.imread('0.jpg',0)
@@ -80,6 +93,9 @@ with tf.Session() as sess:
 	print(new1.shape)
 	# new2 = new1.reshape()
 # cv2.imwrite('new.jpg', new1)
+# ReLUTest(mean, variance)
+# LeakyReLU(mean, variance)
+Conv2dTest(mean, variance)
 
 
 

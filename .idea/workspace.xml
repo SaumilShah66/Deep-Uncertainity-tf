@@ -23,6 +23,7 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tf/tf_adf_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/tf/tf_adf_test.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tf/trials.py" beforeDir="false" afterPath="$PROJECT_DIR$/tf/trials.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/torch/trials.py" beforeDir="false" afterPath="$PROJECT_DIR$/torch/trials.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

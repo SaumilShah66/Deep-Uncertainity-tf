@@ -170,7 +170,7 @@ class Dropout(tf.keras.Model):
 			outputs_variance = self._keep_variance_fn(outputs_variance)
 		return inputs_mean, outputs_variance
 
-class Conv2d(tf.keras.Model):
+class Conv2d_(tf.keras.Model):
 	def __init__(self, in_channels, out_channels, kernel_size, stride=1,
 				 padding='SAME', dilation=1, groups=1, bias=True,
 				 keep_variance_fn=None, name='conv'):
@@ -188,7 +188,31 @@ class Conv2d(tf.keras.Model):
 
 		outputs_variance = tf.nn.conv2d(input= inputs_variance, filter='TODO saumil', strides= self.stride,
 		 padding= self.padding, dilation= self.dilation, name = self.name)
+				 keep_variance_fn=None, name_='conv'):
+		super(Conv2d_, self).__init__()
+		self._keep_variance_fn = keep_variance_fn
+		self.kernel_size = kernel_size
+		self.stride = [1,stride, stride,1]
+		self.padding = padding
+		self.dilation = dilation
+		self.name_ = name_
+		self.weight_shape = [self.kernel_size, self.kernel_size, in_channels, out_channels]
+		# print(self.weights)
+		self.weights_ = tf.get_variable(name=self.name_+"_Weight", 
+			dtype=tf.float64, 
+			shape=list(self.weight_shape))
+		self.biases = tf.Variable(np.zeros(out_channels), dtype=tf.float64)
 
+	def call(self, inputs_mean, inputs_variance):
+		## For mean
+		outputs_mean = tf.nn.conv2d(input= inputs_mean, filter = self.weights_, strides= self.stride,
+		 padding= self.padding, name = self.name_)
+		outputs_mean = tf.nn.bias_add(outputs_mean, self.biases)
+		## For variance
+		outputs_variance = tf.nn.conv2d(input= inputs_variance, filter = self.weights_**2, strides= self.stride,
+		 padding= self.padding, name = self.name_)
+		outputs_variance = tf.nn.bias_add(outputs_variance, self.biases)
+		
 		if self._keep_variance_fn is not None:
 			outputs_variance = self._keep_variance_fn(outputs_variance)
 		return outputs_mean, outputs_variance
