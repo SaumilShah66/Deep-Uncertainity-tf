@@ -216,7 +216,7 @@ def concatenate_as(tensor_list, tensor_as, dim, mode="bilinear"):
 	return means, variances
 
 
-def outShape(strideList, filter_size, padding, input_length, output_padding=0):
+def outShape(strideList, filter_size, padding, input_length, output_padding=0): #ref https://datascience.stackexchange.com/questions/26451/how-to-calculate-the-output-shape-of-conv2d-transpose
 	# strideList is of the form [1,h,w,1]
 	length = np.ones(2, dtype =np.int32)
 	if output_padding == 0:
@@ -277,3 +277,50 @@ class ConvTranspose2d(tf.keras.Model):
 		if self._keep_variance_fn is not None:
 			outputs_variance = self._keep_variance_fn(outputs_variance)
 		return outputs_mean, outputs_variance
+
+
+class Linear(tf.keras.Model):
+	def __init__(self, in_features, out_features, bias=True, keep_variance_fn=None, name_='linear'):
+		super(Linear, self).__init__()
+		self._keep_variance_fn = keep_variance_fn
+		self.in_features = in_features
+		self.out_features = out_features
+		self.weight_shape = [self.out_features, self.in_features]
+		self.biasStatus = bias
+		self.name_ = name_
+		# print(self.weights)
+		self.weights_ = tf.get_variable(name=self.name_+"_Weight", dtype=tf.float64, shape=list(self.weight_shape))
+		if bias:
+			self.biases = tf.Variable(np.zeros(self.out_features), dtype=tf.float64)
+
+	def call(self, inputs_mean, inputs_variance):
+		input_shape = inputs_mean.shape.as_list()
+		inputs_mean = tf.reshape(inputs_mean, [input_shape[1], input_shape[2]])
+		inputs_variance = tf.reshape(inputs_variance, [input_shape[1], input_shape[2]])
+		outputs_mean = tf.matmul(inputs_mean, self.weights_, transpose_b=True)
+		if self.biasStatus:
+			outputs_mean = tf.nn.bias_add(outputs_mean, self.biases)
+		outputs_variance = tf.matmul(inputs_variance, self.weights_**2, transpose_b=True)
+		if self._keep_variance_fn is not None:
+			outputs_variance = self._keep_variance_fn(outputs_variance)
+		return outputs_mean, outputs_variance
+
+
+# class Linear(nn.Module):
+#     def __init__(self, in_features, out_features, bias=True, keep_variance_fn=None):
+#         super(Linear, self).__init__()
+#         self._keep_variance_fn = keep_variance_fn
+#         self.in_features = in_features
+#         self.out_features = out_features
+#         self.weight = Parameter(torch.Tensor(out_features, in_features))
+#         if bias:
+#             self.bias = Parameter(torch.Tensor(out_features))
+#         else:
+#             self.register_parameter('bias', None)
+
+#     def forward(self, inputs_mean, inputs_variance):
+#         outputs_mean = F.linear(inputs_mean, self.weight, self.bias)
+#         outputs_variance = F.linear(inputs_variance, self.weight**2, None)
+#         if self._keep_variance_fn is not None:
+#             outputs_variance = self._keep_variance_fn(outputs_variance)
+#         return outputs_mean, outputs_variance

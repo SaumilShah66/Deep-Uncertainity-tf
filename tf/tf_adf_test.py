@@ -91,9 +91,23 @@ def ConvTranspose2dTest(mean, variance):
 	print(outVar.shape)
 	pass
 
+def LinearTest(mean, variance):
+	linearLayer = Linear(4, 5)
+	l = linearLayer(mean, variance)
+	with tf.Session() as sess:
+		sess.run(tf.global_variables_initializer())
+		sess.run(tf.local_variables_initializer())
+		outMean, outVar = sess.run(l)
+	print("Mean " + "-" * 20)
+	print(outMean)
+	print("Variance " + "-" * 20)
+	print(outVar)
+	print(outVar.shape)
+	pass
+
 mean_ = np.array([[-1,  2,  3,  4], [5,  6,  7,  8], [9, 10, 11, 12], [13, 14, 15, 16]], dtype=np.float64)
-mean_ = np.dstack([mean_, mean_])
-mean_ = np.reshape(mean_, (-1,4,4,1))
+# mean_ = np.dstack([mean_, mean_])
+mean_ = np.reshape(mean_, (1,4,4,1))
 mean = tf.convert_to_tensor(mean_)
 variance = tf.zeros_like(mean) + 0.001
 pool_size = (2, 2)
@@ -109,9 +123,12 @@ pool_size = (2, 2)
 # 	print(new1.shape)
 	# new2 = new1.reshape()
 # cv2.imwrite('new.jpg', new1)
+
+
 # ReLUTest(mean, variance)
 # LeakyReLU(mean, variance)
 # Conv2dTest(mean, variance)
-ConvTranspose2dTest(mean, variance)
+# ConvTranspose2dTest(mean, variance)
+LinearTest(mean, variance)
 
 
