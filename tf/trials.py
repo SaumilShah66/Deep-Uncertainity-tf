@@ -256,15 +256,16 @@ class ConvTranspose2d(tf.keras.Model):
 		self.output_padding = output_padding
 		self.dilation = dilation
 		self.name_ = name_
+		self.out_channels = out_channels
 		self.weight_shape = [self.kernel_size, self.kernel_size, out_channels, in_channels]
 		# print(self.weights)
 		self.weights_ = tf.get_variable(name=self.name_+"_Weight", dtype=tf.float64, shape=list(self.weight_shape))
-		self.biases = tf.Variable(np.zeros(in_channels), dtype=tf.float64)
+		self.biases = tf.Variable(np.zeros(out_channels), dtype=tf.float64)
 
 	def call(self, inputs_mean, inputs_variance, output_size=None):
 		input_shape = inputs_mean.shape.as_list()
 		outputShape = outShape(self.stride, self.kernel_size, self.padding, [input_shape[1],input_shape[2]])
-		self.outputShape = [1, outputShape[0], outputShape[1], 1]
+		self.outputShape = [input_shape[0], outputShape[0], outputShape[1], self.out_channels]
 		## For mean
 		outputs_mean = tf.nn.conv2d_transpose(value= inputs_mean, filter = self.weights_,output_shape=self.outputShape, strides= self.stride,
 		 padding= self.padding, name = self.name_)
