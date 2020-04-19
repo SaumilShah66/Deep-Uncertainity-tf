@@ -318,28 +318,29 @@ class BatchNorm2d(tf.keras.Model):
 		self.name_ = name_
 		
 
-	def reset_running_stats(self):
-		if self.track_running_stats:
-			self.running_mean.assign(self.running_mean*0)
-			self.running_var.assign(self.running_mean*0 + 1)
-			self.num_batches_tracked.assign(0)
+	# def reset_running_stats(self):
+	# 	if self.track_running_stats:
+	# 		self.running_mean.assign(self.running_mean*0)
+	# 		self.running_var.assign(self.running_mean*0 + 1)
+	# 		self.num_batches_tracked.assign(0)
 
-	def reset_parameters(self):
-		self.reset_running_stats()
-		if self.affine:
-			a= (np.random.random(self.num_features)).astype(np.float64)
-			print('a= ',a)
-			# sess3 = tf.Session()
-			self.weights_ = tf.Variable(a, dtype =tf.float64)
-			# print('casted weight= ', self.weights_)
-			# print('casted weight= ', sess3.run(self.weights_))
-			self.biases = tf.Variable(np.zeros(self.num_features), dtype=tf.float64)
-			return self.weights_
+	# def reset_parameters(self):
+	# 	self.reset_running_stats()
+	# 	if self.affine:
+	# 		a= (np.random.random(self.num_features)).astype(np.float64)
+	# 		print('a= ',a)
+	# 		# sess3 = tf.Session()
+	# 		self.weights_ = tf.Variable(a, dtype =tf.float64)
+	# 		# print('casted weight= ', self.weights_)
+	# 		# print('casted weight= ', sess3.run(self.weights_))
+	# 		self.biases = tf.Variable(np.zeros(self.num_features), dtype=tf.float64)
+	# 		return self.weights_
+			
 	def call(self, inputs_mean, inputs_variance):
 		# exponential_average_factor is self.momentum set to
 		# (when it is available) only so that if gets updated
 		# in ONNX graph when this node is exported to ONNX.
-		
+
 		# self.num_features = inputs_mean.shape.as_list()[3]
 		# self.weight_shape = [self.num_features]
 		if self.affine:
