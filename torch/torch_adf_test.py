@@ -63,17 +63,31 @@ def ConvTranspose2dTest(mean, variance):
 	print(l[0].shape)
 	pass
 
-mean = torch.tensor([[-1,  2,  3,  4],
+
+def BatchNorm2dTest(mean, variance):
+	deconv = BatchNorm2d(1)
+	l = deconv(mean, variance)
+	print("Mean " + "-"*20)
+	print(l[0])
+	print("Variance " + "-"*20)
+	print(l[1])
+	print(l[0].shape)
+	pass
+
+
+mean = torch.tensor([[1,  2,  3,  4],
 					  [5,  6,  7,  8],
 					  [9, 10, 11, 12],
 					  [13, 14, 15, 16]], dtype=torch.float)
-variance = torch.zeros_like(mean) + 0.001
+
 kernel_size = 2
 mean = mean.reshape(1,1,4,4)
-variance = variance.reshape(1,1,4,4)
+variance = torch.zeros_like(mean) + 0.001
+# variance = variance.reshape(1,1,4,4)
 # AvgPooledTest(mean, variance, kernel_size)
 # MaxPool2dTest(mean, variance)
 # ReLUTest(mean, variance)
 # LeakyReLUTest(mean, variance)
 # DropoutTest(mean, variance)
-ConvTranspose2dTest(mean, variance)
+# ConvTranspose2dTest(mean, variance)
+BatchNorm2dTest(mean, variance)
