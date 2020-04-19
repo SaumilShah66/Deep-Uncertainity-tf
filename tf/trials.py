@@ -311,7 +311,7 @@ class BatchNorm2d(tf.keras.Model):
 				 track_running_stats=True, keep_variance_fn=None, name_= 'BatchNorm2d'):
 		super(BatchNorm2d, self).__init__()
 		self._keep_variance_fn = keep_variance_fn
-		self.eps = eps
+		self.eps = 0
 		self.momentum = momentum
 		self.affine = affine
 		self.track_running_stats = track_running_stats
@@ -339,16 +339,17 @@ class BatchNorm2d(tf.keras.Model):
 		# exponential_average_factor is self.momentum set to
 		# (when it is available) only so that if gets updated
 		# in ONNX graph when this node is exported to ONNX.
-		self.num_features = inputs_mean.shape.as_list()[3]
-		self.weight_shape = [self.num_features]
+		
+		# self.num_features = inputs_mean.shape.as_list()[3]
+		# self.weight_shape = [self.num_features]
 		if self.affine:
-			# self.weights_ = tf.get_variable(name=self.name_+"_Weight", dtype=tf.float64, shape=list(self.weight_shape))
-			self.biases = tf.Variable(np.ones(self.num_features), dtype=tf.float64)
-			self.weights_ = tf.Variable(np.ones(self.num_features), dtype=tf.float64)
+			pass
+			# self.biases = tf.Variable(np.ones(self.num_features), dtype=tf.float64)
+			# self.weights_ = tf.Variable(np.ones(self.num_features), dtype=tf.float64)
 
 		if self.track_running_stats:
-			self.running_mean = tf.Variable(np.zeros(self.num_features), dtype=tf.float64)
-			self.running_var = tf.Variable(np.ones(self.num_features), dtype=tf.float64)
+			# self.running_mean = tf.Variable(np.ones(self.num_features), dtype=tf.float64)
+			# self.running_var = tf.Variable(np.ones(self.num_features), dtype=tf.float64)
 			self.num_batches_tracked = tf.Variable(0, dtype=tf.int64)
 		# a= self.reset_parameters()
 
@@ -366,15 +367,52 @@ class BatchNorm2d(tf.keras.Model):
 				else:  # use exponential moving average
 					exponential_average_factor = self.momentum
 
-		# batchNormLayer = tf.keras.layers.BatchNormalization(momentum= exponential_average_factor, epsilon=self.eps,
-		# 													moving_mean_initializer=self.running_mean, moving_variance_initializer= self.running_var,
-		# 													center=True, beta_initializer= self.weights_,
-		# 													trainable=(sess2.run(training)) or not self.track_running_stats)
+		input_shape = inputs_mean.shape.as_list()
+		weights = tf.random_uniform(input_shape[-1:], minval=0.0, maxval=1.0)
 		
-		# outputs_mean = batchNormLayer(inputs_mean, sess2.run(training))
-		outputs_mean = tf.nn.batch_normalization(x=inputs_mean, mean= self.running_mean, variance=self.running_var, variance_epsilon=self.eps, offset=None, scale=None)
+		bias = tf.zeros(input_shape[-1], dtype=tf.float64)
+
+		batchNormLayer = tf.keras.layers.BatchNormalization(momentum= exponential_average_factor, epsilon=self.eps,
+															moving_mean_initializer=tf.zeros_initializer(), moving_variance_initializer=tf.ones_initializer(),
+															center=False, scale=False, trainable=True,
+															adjustment= lambda input_shape: ( weights, bias))
+															# lambda weights: (weights, bias))
+		# sess2.run(training)) or not self.track_running_stats
+		outputs_mean = batchNormLayer(tf.cast(inputs_mean, dtype=tf.float32), training=True)
+		print(sess2.run(weights))
+		# outputs_mean = tf.nn.batch_normalization(x=inputs_mean, mean= self.running_mean, variance=self.running_var, variance_epsilon=self.eps, offset=None, scale=None)
+
+		# mean = tf.keras.backend.mean(x= inputs_mean)
+		# print(sess2.run(mean))
+		# outputs_mean = tf.nn.batch_normalization(x=inputs_mean, mean= mean, variance= tf.cast(1.0, dtype=tf.float64), variance_epsilon=self.eps, offset=None, scale=None)
+		# outputs_mean = tf.layers.batch_normalization(tf.cast(inputs_mean, dtype=tf.float32), epsilon=self.eps, training=True)
 		outputs_variance = inputs_variance
-		outputs_variance = outputs_variance * (self.weights_**2)
+		outputs_variance = outputs_variance * (tf.cast(weights, dtype=tf.float64)**2)
 		if self._keep_variance_fn is not None:
 			outputs_variance = self._keep_variance_fn(outputs_variance)
 		return outputs_mean, outputs_variance
+
+
+
+
+
+# if self.track_running_stats:
+# 			self.register_buffer('running_mean', torch.zeros(num_features))
+# 			self.register_buffer('running_var', torch.ones(num_features))
+# 			self.register_buffer('num_batches_tracked', torch.tensor(0, dtype=torch.long))
+# 		else:
+# 			self.register_parameter('running_mean', None)
+# 			self.register_parameter('running_var', None)
+# 			self.register_parameter('num_batches_tracked', None)
+# 		self.reset_parameters()
+
+# 	def reset_running_stats(self):
+# 		if self.track_running_stats:
+# 			self.running_mean.zero_()
+# 			self.running_var.fill_(1)
+# 			self.num_batches_tracked.zero_()
+
+# outputs_mean = F.batch_norm(
+# 			inputs_mean, self.running_mean, self.running_var, self.weight, self.bias,
+# 			self.training or not self.track_running_stats,
+# 			exponential_average_factor, self.eps)

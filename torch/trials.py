@@ -205,13 +205,13 @@ class BatchNorm2d(nn.Module):
         self.track_running_stats = track_running_stats
         if self.affine:
             self.weight = Parameter(torch.ones(num_features))
-            self.bias = Parameter(torch.ones(num_features))
+            self.bias = Parameter(torch.zeros(num_features))
         else:
             self.register_parameter('weight', None)
             self.register_parameter('bias', None)
         if self.track_running_stats:
-            self.register_buffer('running_mean', torch.zeros(num_features))
-            self.register_buffer('running_var', torch.ones(num_features))
+            self.register_buffer('running_mean', torch.ones(num_features))
+            self.register_buffer('running_var', torch.zeros(num_features))
             self.register_buffer('num_batches_tracked', torch.tensor(0, dtype=torch.long))
         else:
             self.register_parameter('running_mean', None)
@@ -252,10 +252,16 @@ class BatchNorm2d(nn.Module):
                 else:  # use exponential moving average
                     exponential_average_factor = self.momentum
 
+        # outputs_mean = F.batch_norm(
+        #     inputs_mean, self.running_mean, self.running_var, self.weight, self.bias,
+        #     self.training or not self.track_running_stats,
+        #     exponential_average_factor, self.eps)
+
         outputs_mean = F.batch_norm(
             inputs_mean, self.running_mean, self.running_var, self.weight, self.bias,
             self.training or not self.track_running_stats,
             exponential_average_factor, self.eps)
+
         outputs_variance = inputs_variance
         weight = ((self.weight.unsqueeze(0)).unsqueeze(2)).unsqueeze(3)
         outputs_variance = outputs_variance*weight**2
@@ -268,3 +274,78 @@ class BatchNorm2d(nn.Module):
         return outputs_mean, outputs_variance
 
 # if __name__ == "__main__":
+
+# Mean --------------------wths=None
+# self.weight = Parameter(torch.ones(num_features))
+# self.bias = Parameter(torch.zeros(num_features))
+# self.register_buffer('running_mean', torch.zeros(num_features))
+# self.register_buffer('running_var', torch.ones(num_features))
+# tensor([[[[-1.6270, -1.4100, -1.1931, -0.9762],
+#           [-0.7593, -0.5423, -0.3254, -0.1085],
+#           [ 0.1085,  0.3254,  0.5423,  0.7593],
+#           [ 0.9762,  1.1931,  1.4100,  1.6270]]]],
+
+
+# Mean --------------------wths=None, bias=None
+# self.weight = Parameter(torch.ones(num_features))
+# self.bias = Parameter(torch.zeros(num_features))
+# self.register_buffer('running_mean', torch.zeros(num_features))
+# self.register_buffer('running_var', torch.ones(num_features))
+# tensor([[[[-1.6270, -1.4100, -1.1931, -0.9762],
+#           [-0.7593, -0.5423, -0.3254, -0.1085],
+#           [ 0.1085,  0.3254,  0.5423,  0.7593],
+#           [ 0.9762,  1.1931,  1.4100,  1.6270]]]])
+
+
+# Mean --------------------bias=None
+# self.weight = Parameter(torch.ones(num_features))
+# self.bias = Parameter(torch.zeros(num_features))
+# self.register_buffer('running_mean', torch.zeros(num_features))
+# self.register_buffer('running_var', torch.ones(num_features))
+# tensor([[[[-1.6270, -1.4100, -1.1931, -0.9762],
+#           [-0.7593, -0.5423, -0.3254, -0.1085],
+#           [ 0.1085,  0.3254,  0.5423,  0.7593],
+#           [ 0.9762,  1.1931,  1.4100,  1.6270]]]],
+
+
+# Mean --------------------run_mean=None, bias=None
+# self.weight = Parameter(torch.ones(num_features))
+# self.bias = Parameter(torch.zeros(num_features))
+# self.register_buffer('running_mean', torch.zeros(num_features))
+# self.register_buffer('running_var', torch.ones(num_features))
+# tensor([[[[-1.6270, -1.4100, -1.1931, -0.9762],
+#           [-0.7593, -0.5423, -0.3254, -0.1085],
+#           [ 0.1085,  0.3254,  0.5423,  0.7593],
+#           [ 0.9762,  1.1931,  1.4100,  1.6270]]]],
+
+# Mean --------------------run_var=None, run_mean=None, bias=None
+# self.weight = Parameter(torch.ones(num_features))
+# self.bias = Parameter(torch.zeros(num_features))
+# self.register_buffer('running_mean', torch.zeros(num_features))
+# self.register_buffer('running_var', torch.ones(num_features))
+# tensor([[[[-1.6270, -1.4100, -1.1931, -0.9762],
+#           [-0.7593, -0.5423, -0.3254, -0.1085],
+#           [ 0.1085,  0.3254,  0.5423,  0.7593],
+#           [ 0.9762,  1.1931,  1.4100,  1.6270]]]],
+
+
+# Mean --------------------run_var=None, run_mean=None
+# self.weight = Parameter(torch.zeros(num_features))
+# self.bias = Parameter(torch.zeros(num_features))
+# self.register_buffer('running_mean', torch.zeros(num_features))
+# self.register_buffer('running_var', torch.ones(num_features))
+# tensor([[[[0., 0., 0., 0.],
+#           [0., 0., 0., 0.],
+#           [0., 0., 0., 0.],
+#           [0., 0., 0., 0.]]]],
+
+
+# Mean --------------------run_var=None, run_mean=None
+# self.weight = Parameter(torch.zeros(num_features))
+# self.bias = Parameter(torch.ones(num_features))
+# self.register_buffer('running_mean', torch.zeros(num_features))
+# self.register_buffer('running_var', torch.ones(num_features))
+# tensor([[[[1., 1., 1., 1.],
+#           [1., 1., 1., 1.],
+#           [1., 1., 1., 1.],
+#           [1., 1., 1., 1.]]]], grad_fn=<NativeBatchNormBackward>)
