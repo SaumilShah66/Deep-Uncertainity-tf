@@ -101,12 +101,13 @@ class MaxPool2d(tf.keras.Model):
 		return output_mean, output_variance
 
 class ReLU(tf.keras.Model):
-	def __init__(self, keep_variance_fn=None):
+	def __init__(self, keep_variance_fn=None, dtype = tf.float32):
 		super(ReLU, self).__init__()
 		self._keep_variance_fn = keep_variance_fn
+		self.dtype = dtype
 
 	def call(self, feature_mean, feature_variance):
-		feature_stddev = tf.cast(tf.sqrt(feature_variance), tf.float64)
+		feature_stddev = tf.cast(tf.sqrt(feature_variance), self.dtype)
 		div = feature_mean / feature_stddev
 		pdf = normpdf(div)
 		cdf = normcdf(div)
@@ -118,13 +119,14 @@ class ReLU(tf.keras.Model):
 		return output_mean, output_variance
 
 class LeakyReLU(tf.keras.Model):
-	def __init__(self, negative_slope=0.01, keep_variance_fn=None):
+	def __init__(self, negative_slope=0.01, keep_variance_fn=None, dtype = tf.float32):
 		super(LeakyReLU, self).__init__()
 		self._keep_variance_fn = keep_variance_fn
 		self._negative_slope = negative_slope
+		self.dtype = dtpe
 
 	def call(self, features_mean, features_variance):
-		features_stddev = tf.cast(tf.sqrt(features_variance), tf.float64)
+		features_stddev = tf.cast(tf.sqrt(features_variance), self.dtype)
 		div = features_mean / features_stddev
 		pdf = normpdf(div)
 		cdf = normcdf(div)
@@ -176,7 +178,7 @@ class Dropout(tf.keras.Model):
 class Conv2d(tf.keras.Model):
 	def __init__(self, in_channels, out_channels, kernel_size, stride=1,
 				 padding='SAME', dilation=1, groups=1, bias=True,
-				 keep_variance_fn=None, name_='conv'):
+				 keep_variance_fn=None, name_='conv', dtype = tf.float32):
 		super(Conv2d, self).__init__()
 		self._keep_variance_fn = keep_variance_fn
 		self.kernel_size = kernel_size
@@ -185,9 +187,9 @@ class Conv2d(tf.keras.Model):
 		self.dilation = dilation
 		self.name_ = name_
 		self.weight_shape = [self.kernel_size, self.kernel_size, in_channels, out_channels]
-		# print(self.weights)
-		self.weights_ = tf.get_variable(name=self.name_+"_Weight", dtype=tf.float64, shape=list(self.weight_shape))
-		self.biases = tf.Variable(np.zeros(out_channels), dtype=tf.float64)		
+		self.dtype = dtype
+		self.weights_ = tf.get_variable(name=self.name_+"_Weight", dtype = self.dtype, shape=list(self.weight_shape))
+		self.biases = tf.Variable(np.zeros(out_channels), dtype = self.dtype)		
 
 	def call(self, inputs_mean, inputs_variance):
 		## For mean
@@ -245,7 +247,7 @@ def outShape(strideList, filter_size, padding, input_length, output_padding=0): 
 class ConvTranspose2d(tf.keras.Model):
 	def __init__(self, in_channels, out_channels, kernel_size, stride=1,
 				 padding='SAME', output_padding=0, groups=1, bias=True, dilation=1,
-				 keep_variance_fn=None, name_='convTrans', output_size=None):
+				 keep_variance_fn=None, name_='convTrans', output_size=None, dtype=tf.float32):
 		super(ConvTranspose2d, self).__init__()
 		self._keep_variance_fn = keep_variance_fn
 		self.kernel_size = kernel_size
@@ -256,9 +258,9 @@ class ConvTranspose2d(tf.keras.Model):
 		self.name_ = name_
 		self.out_channels = out_channels
 		self.weight_shape = [self.kernel_size, self.kernel_size, out_channels, in_channels]
-		# print(self.weights)
-		self.weights_ = tf.get_variable(name=self.name_+"_Weight", dtype=tf.float64, shape=list(self.weight_shape))
-		self.biases = tf.Variable(np.zeros(out_channels), dtype=tf.float64)
+		self.dtype = dtype
+		self.weights_ = tf.get_variable(name=self.name_+"_Weight", dtype=self.dtype, shape=list(self.weight_shape))
+		self.biases = tf.Variable(np.zeros(out_channels), dtype=self.dtype)
 
 	def call(self, inputs_mean, inputs_variance, output_size=None):
 		input_shape = inputs_mean.shape.as_list()
@@ -278,11 +280,12 @@ class ConvTranspose2d(tf.keras.Model):
 
 
 class Linear(tf.keras.Model):
-	def __init__(self, bias=True, keep_variance_fn=None, name_='linear'):
+	def __init__(self, bias=True, keep_variance_fn=None, name_='linear', dtype=tf.float32):
 		super(Linear, self).__init__()
 		self._keep_variance_fn = keep_variance_fn
 		self.biasStatus = bias
 		self.name_ = name_
+		self.dtype = dtype
 
 	def call(self, inputs_mean, inputs_variance, out_features):
 		self.out_features = out_features
@@ -291,12 +294,12 @@ class Linear(tf.keras.Model):
 			input_shape = [input_shape[0], input_shape[1]*input_shape[2]*input_shape[3]]
 		self.in_features = input_shape[1]
 		weight_shape = [self.out_features, self.in_features]
-		self.weights_ = tf.get_variable(name=self.name_+"_Weight", dtype=tf.float64, shape=list(weight_shape))		
+		self.weights_ = tf.get_variable(name=self.name_+"_Weight", dtype=self.dtype, shape=list(weight_shape))		
 		inputs_mean = tf.reshape(inputs_mean, [input_shape[0], input_shape[1]])
 		inputs_variance = tf.reshape(inputs_variance, [input_shape[0], input_shape[1]])
 		outputs_mean = tf.matmul(inputs_mean, self.weights_, transpose_b=True)
 		if self.biasStatus:
-			self.biases = tf.Variable(np.zeros(self.out_features), dtype=tf.float64)
+			self.biases = tf.Variable(np.zeros(self.out_features), dtype=self.dtype)
 			outputs_mean = tf.nn.bias_add(outputs_mean, self.biases)
 		outputs_variance = tf.matmul(inputs_variance, self.weights_**2, transpose_b=True)
 		if self._keep_variance_fn is not None:
@@ -306,7 +309,8 @@ class Linear(tf.keras.Model):
 
 class BatchNorm2d(tf.keras.Model):
 	def __init__(self, eps=1e-5, momentum=0.1, affine=True,
-				 track_running_stats=True, keep_variance_fn=None, name_= 'BatchNorm2d'):
+				 track_running_stats=True, keep_variance_fn=None, 
+				 name_= 'BatchNorm2d', dtype=tf.float32):
 		super(BatchNorm2d, self).__init__()
 		self._keep_variance_fn = keep_variance_fn
 		self.eps = 0
@@ -314,7 +318,8 @@ class BatchNorm2d(tf.keras.Model):
 		self.affine = affine
 		self.track_running_stats = track_running_stats
 		self.name_ = name_
-			
+		self.dtype = dtype
+		
 	def call(self, inputs_mean, inputs_variance):
 		# exponential_average_factor is self.momentum set to
 		# (when it is available) only so that if gets updated
@@ -337,16 +342,16 @@ class BatchNorm2d(tf.keras.Model):
 		input_shape = inputs_mean.shape.as_list()
 		weights = tf.random_uniform(input_shape[-1:], minval=0.0, maxval=1.0)
 		
-		bias = tf.zeros(input_shape[-1], dtype=tf.float64)
+		bias = tf.zeros(input_shape[-1], dtype=self.dtype)
 
 		batchNormLayer = tf.keras.layers.BatchNormalization(momentum= exponential_average_factor, epsilon=self.eps,
 															moving_mean_initializer=tf.zeros_initializer(), moving_variance_initializer=tf.ones_initializer(),
 															center=False, scale=False, trainable=True,
 															adjustment= lambda input_shape: ( weights, bias))
 
-		outputs_mean = batchNormLayer(tf.cast(inputs_mean, dtype=tf.float32), training= (isTraining() or self.track_running_stats))
+		outputs_mean = batchNormLayer(tf.cast(inputs_mean, dtype=self.dtype), training= (isTraining() or self.track_running_stats))
 		outputs_variance = inputs_variance
-		outputs_variance = outputs_variance * (tf.cast(weights, dtype=tf.float64)**2)
+		outputs_variance = outputs_variance * (tf.cast(weights, dtype=self.dtype)**2)
 		if self._keep_variance_fn is not None:
 			outputs_variance = self._keep_variance_fn(outputs_variance)
 		return outputs_mean, outputs_variance
