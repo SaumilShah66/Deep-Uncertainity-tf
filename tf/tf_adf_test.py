@@ -121,8 +121,24 @@ def BatchNorm2dTest(mean, variance):
 	# print(wt)
 	pass
 
+def softmaxTest(mean, variance):
+	soft = Softmax(1)
+	l = soft(mean, variance)
+	with tf.Session() as sess:
+		# sess.run(tf.global_variables_initializer())
+		# sess.run(tf.local_variables_initializer())
+		outMean, outVar = sess.run(l)
+	print("Mean " + "-" * 20)
+	print(outMean)
+	print("Variance " + "-" * 20)
+	print(outVar)
+	print(outVar.shape)
+	pass	
 
-mean_ = np.array([[1,  2,  3,  4], [5,  6,  7,  8], [9, 10, 11, 12], [13, 14, 15, 16]], dtype=np.float64)
+mean_ = np.array([[1,  2,  3,  4], 
+				  [5,  6,  7,  8], 
+				  [9, 10, 11, 12], 
+				  [13, 14, 15, 16]], dtype=np.float64)
 # mean_ = np.dstack([mean_, mean_])
 mean_ = np.reshape(mean_, (-1,4,4,1))
 mean = tf.convert_to_tensor(mean_)
@@ -140,10 +156,11 @@ pool_size = (2, 2)
 # cv2.imwrite('new.jpg', new1)
 
 # avgPool2dTest(mean, variance, pool_size)
-DropoutTest(mean, variance)
+# DropoutTest(mean, variance)
 # ReLUTest(mean, variance)
 # LeakyReLU(mean, variance)
 # Conv2dTest(mean, variance)
 # ConvTranspose2dTest(mean, variance)
 # LinearTest(mean, variance)
 # BatchNorm2dTest(mean, variance)
+softmaxTest(mean, variance)

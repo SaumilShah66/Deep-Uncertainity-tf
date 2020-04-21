@@ -351,6 +351,38 @@ class BatchNorm2d(tf.keras.Model):
 			outputs_variance = self._keep_variance_fn(outputs_variance)
 		return outputs_mean, outputs_variance
 
+class Softmax(tf.keras.Model):
+	def __init__(self, axis=0, keep_variance_fn=None):
+		super(Softmax, self).__init__()
+		self.axis = axis
+		self._keep_variance_fn = keep_variance_fn
+
+	def call(self, features_mean, features_variance, eps=1e-5):
+		"""Softmax function applied to a multivariate Gaussian distribution.
+		It works under the assumption that features_mean and features_variance 
+		are the parameters of a the indepent gaussians that contribute to the 
+		multivariate gaussian. 
+		Mean and variance of the log-normal distribution are computed following
+		https://en.wikipedia.org/wiki/Log-normal_distribution."""
+		
+		log_gaussian_mean = features_mean + 0.5 * features_variance
+		log_gaussian_variance = 2 * log_gaussian_mean
+
+		log_gaussian_mean = tf.exp(log_gaussian_mean)
+		log_gaussian_variance = tf.exp(log_gaussian_variance)
+		log_gaussian_variance = log_gaussian_variance*(tf.exp(features_variance)-1)
+
+		constant = tf.reduce_sum(log_gaussian_mean, axis=self.axis) + eps
+		constant = tf.expand_dims(constant, axis=self.axis)
+
+		outputs_mean = log_gaussian_mean/constant
+		outputs_variance = log_gaussian_variance/(constant**2)
+		
+		if self._keep_variance_fn is not None:
+			outputs_variance = self._keep_variance_fn(outputs_variance)
+		return outputs_mean, outputs_variance
+   
+
 def isTraining():
 	training = tf.keras.backend.learning_phase()
 	sess2 = tf.Session()

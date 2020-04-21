@@ -74,7 +74,15 @@ def BatchNorm2dTest(mean, variance):
 	print(l[0].shape)
 	pass
 
-
+def softmaxTest(mean, variance):
+	soft = Softmax(2)
+	l = soft(mean, variance)
+	print("Mean " + "-"*20)
+	print(l[0])
+	print("Variance " + "-"*20)
+	print(l[1])
+	print(l[0].shape)
+	pass
 mean = torch.tensor([[1,  2,  3,  4],
 					  [5,  6,  7,  8],
 					  [9, 10, 11, 12],
@@ -90,4 +98,5 @@ variance = torch.zeros_like(mean) + 0.001
 # LeakyReLUTest(mean, variance)
 # DropoutTest(mean, variance)
 # ConvTranspose2dTest(mean, variance)
-BatchNorm2dTest(mean, variance)
+# BatchNorm2dTest(mean, variance)
+softmaxTest(mean, variance)
