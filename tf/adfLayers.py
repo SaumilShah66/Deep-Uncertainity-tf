@@ -44,12 +44,13 @@ def test(self, block, num_blocks, num_classes=10, noise_variance=1e-3, min_varia
 	return self.keep_variance_fn
 
 class AvgPool2d(tf.keras.Model):
-	def __init__(self, keep_variance_fn=None):
+	def __init__(self, pool_size, keep_variance_fn=None):
 		super(AvgPool2d, self).__init__()
 		self._keep_variance_fn = keep_variance_fn
+		self.pool_size = pool_size
 
-	def call(self, input_mean, inputs_variance, pool_size):
-		pool_layer = tf.keras.layers.AvgPool2D(pool_size=pool_size)
+	def call(self, input_mean, inputs_variance):
+		pool_layer = tf.keras.layers.AvgPool2D(pool_size=self.pool_size)
 		output_mean = pool_layer(input_mean)
 		output_variance = pool_layer(inputs_variance)
 		shape = input_mean.shape.as_list()
@@ -277,7 +278,7 @@ def outShape(strideList, filter_size, padding, input_length, output_padding=0): 
 class ConvTranspose2d(tf.keras.Model):
 	def __init__(self, in_channels, out_channels, kernel_size, stride=1,
 				 padding='SAME', output_padding=0, groups=1, bias=True, dilation=1,
-				 keep_variance_fn=None, name_='convTrans', output_size=None, dtype=tf.float32):
+				 keep_variance_fn=None, name_='convTrans', output_size=None, dtype_=tf.float32):
 		super(ConvTranspose2d, self).__init__()
 		self._keep_variance_fn = keep_variance_fn
 		self.kernel_size = kernel_size
@@ -288,11 +289,11 @@ class ConvTranspose2d(tf.keras.Model):
 		self.name_ = name_
 		self.out_channels = out_channels
 		self.weight_shape = [self.kernel_size, self.kernel_size, out_channels, in_channels]
-		self.dtype = dtype
-		self.weights_ = tf.get_variable(name=self.name_+"_Weight", dtype=self.dtype, shape=list(self.weight_shape))
-		self.biases = tf.Variable(np.zeros(out_channels), dtype=self.dtype)
+		self.dtype_ = dtype_
+		self.weights_ = tf.get_variable(name=self.name_+"_Weight", dtype=self.dtype_, shape=list(self.weight_shape))
+		self.biases = tf.Variable(np.zeros(out_channels), dtype=self.dtype_)
 
-	def call(self, inputs_mean, inputs_variance, output_size=None):
+	def call(self, inputs_mean, inputs_variance):
 		input_shape = inputs_mean.shape.as_list()
 		outputShape = outShape(self.stride, self.kernel_size, self.padding, [input_shape[1],input_shape[2]], self.output_padding)
 		self.outputShape = [input_shape[0], outputShape[0], outputShape[1], self.out_channels]
@@ -319,6 +320,8 @@ class Linear(tf.keras.Model):
 		self.out_features = out_features
 		weight_shape = [self.out_features, self.in_features]
 		self.weights_ = tf.get_variable(name=self.name_+"_Weight", dtype=self.dtype_, shape=list(weight_shape))
+		if self.biasStatus:
+			self.biases = tf.Variable(np.zeros(self.out_features), dtype=self.dtype_)
 
 	def call(self, inputs_mean, inputs_variance):
 		input_shape = inputs_mean.shape.as_list()
@@ -326,7 +329,6 @@ class Linear(tf.keras.Model):
 		inputs_variance = tf.reshape(inputs_variance, [input_shape[0], self.in_features])
 		outputs_mean = tf.matmul(inputs_mean, self.weights_, transpose_b=True)
 		if self.biasStatus:
-			self.biases = tf.Variable(np.zeros(self.out_features), dtype=self.dtype_)
 			outputs_mean = tf.nn.bias_add(outputs_mean, self.biases)
 		outputs_variance = tf.matmul(inputs_variance, self.weights_**2, transpose_b=True)
 		if self._keep_variance_fn is not None:
@@ -373,7 +375,7 @@ class BatchNorm2d(tf.keras.Model):
 
 		batchNormLayer = tf.keras.layers.BatchNormalization(momentum= exponential_average_factor, epsilon=self.eps,
 															moving_mean_initializer=tf.zeros_initializer(), moving_variance_initializer=tf.ones_initializer(),
-															center=False, scale=False, trainable=True,
+															center=False, scale=False, trainable=(isTraining() or self.track_running_stats),
 															adjustment= lambda input_shape: ( weights, bias))
 
 		outputs_mean = batchNormLayer(tf.cast(inputs_mean, dtype=self.dtype_), training= (isTraining() or self.track_running_stats))
@@ -384,12 +386,13 @@ class BatchNorm2d(tf.keras.Model):
 		return outputs_mean, outputs_variance
 
 class Softmax(tf.keras.Model):
-	def __init__(self, axis=0, keep_variance_fn=None):
+	def __init__(self, , eps=1e-5, axis=0, keep_variance_fn=None):
 		super(Softmax, self).__init__()
 		self.axis = axis
 		self._keep_variance_fn = keep_variance_fn
+		self.eps = eps
 
-	def call(self, features_mean, features_variance, eps=1e-5):
+	def call(self, features_mean, features_variance):
 		"""Softmax function applied to a multivariate Gaussian distribution.
 		It works under the assumption that features_mean and features_variance 
 		are the parameters of a the indepent gaussians that contribute to the 
@@ -418,3 +421,41 @@ def isTraining():
 	training = tf.keras.backend.learning_phase()
 	sess2 = tf.Session()
 	return sess2.run(training)
+
+
+class Sequential(tf.keras.Model):
+	def __init__(self, in_channels, out_channels, kernel_size, stride=1,
+				 padding='SAME', dilation=1, groups=1, bias=True,
+				 keep_variance_fn=None, name_='conv', dtype_ = tf.float32):
+		super(Sequential, self).__init__()
+		self._keep_variance_fn = keep_variance_fn
+		self.kernel_size = kernel_size
+		self.stride = [1,stride, stride,1]
+		self.out_channels = out_channels
+		# self.stride = stride
+		self.padding = padding
+		self.dilation = dilation
+		self.name_ = name_
+		self.weight_shape = [self.kernel_size, self.kernel_size, in_channels, out_channels]
+		self.dtype_ = dtype_
+		self.weights_ = tf.get_variable(name=self.name+"_Weight", trainable=True ,dtype = self.dtype_, shape=list(self.weight_shape))
+		# self.weights_ = tf.Variable(np.ones(list(self.weight_shape)) ,dtype = self.dtype_)
+		self.biases = tf.Variable(np.zeros(out_channels), dtype = self.dtype_)		
+
+	def call(self, inputs_mean, inputs_variance, layerObj = None):
+		## For mean
+		if layerObj=None:
+			return inputs_mean, inputs_variance
+		else:
+			for obj in layerObj:
+
+		outputs_mean = tf.nn.conv2d(input= inputs_mean, filter = self.weights_, strides= self.stride,
+		 padding= self.padding, name = self.name_)
+		outputs_mean = tf.nn.bias_add(outputs_mean, self.biases)
+		## For variance
+		outputs_variance = tf.nn.conv2d(input= inputs_variance, filter = (self.weights_*self.weights_), strides= self.stride,
+		 padding= self.padding, name = self.name_)
+		
+		if self._keep_variance_fn is not None:
+			outputs_variance = self._keep_variance_fn(outputs_variance)
+		return outputs_mean, outputs_variance

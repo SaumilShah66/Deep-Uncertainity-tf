@@ -1,5 +1,5 @@
 import tensorflow as tf 
-from adfLayers import *
+from trials import *
 import numpy as np 
 try:
 	import cv2
@@ -7,11 +7,6 @@ except:
 	import sys
 	sys.path.remove(sys.path[2])
 	import cv2
-
-
-def keep_variance(x, min_variance):
-    return x + min_variance
-
 
 def avgPool2dTest(mean, variance, pool_size):
 	AvgPool2d_ = AvgPool2d()
@@ -29,11 +24,11 @@ def maxPool2dTest(mean, variance):
 	l = maxPool2d(mean, variance)
 	with tf.Session() as sess:
 		outMean, outVar = sess.run(l)
-	# print("Mean " + "-" * 20)
-	# print(outMean)
-	# print("Variance " + "-" * 20)
-	# print(outVar)
-	return outMean, outVar
+	print("Mean " + "-" * 20)
+	print(outMean)
+	print("Variance " + "-" * 20)
+	print(outVar)
+	pass
 
 def ReLUTest(mean, variance):
 	relu = ReLU()
@@ -69,19 +64,18 @@ def DropoutTest(mean, variance):
 	pass
 
 def Conv2dTest(mean, variance):
-	keep_variance_fn = lambda x: keep_variance(x, min_variance= 0.001)
-	conv = Conv2d(1, 16, 3, keep_variance_fn= keep_variance_fn, name_="conv_1")
+	conv = Conv2d(in_channels=1, out_channels=1, kernel_size=3)
 	l = conv(mean, variance)
 	with tf.Session() as sess:
 		sess.run(tf.global_variables_initializer())
 		sess.run(tf.local_variables_initializer())
 		outMean, outVar = sess.run(l)
-	# print("Mean " + "-" * 20)
-	# print(outMean)
-	# print("Variance " + "-" * 20)
-	# print(outVar)
-	# print(outVar.shape)
-	return outMean, outVar
+	print("Mean " + "-" * 20)
+	print(outMean)
+	print("Variance " + "-" * 20)
+	print(outVar)
+	print(outVar.shape)
+	pass	
 
 def ConvTranspose2dTest(mean, variance):
 	deconv = ConvTranspose2d(1, 2, 3, 2)
@@ -142,9 +136,9 @@ def softmaxTest(mean, variance):
 	pass	
 
 mean_ = np.array([[1,  2,  3,  4], 
-				  [5,  -6,  7,  8],
+				  [5,  6,  7,  8], 
 				  [9, 10, 11, 12], 
-				  [13, 14, 15, 16]], dtype=np.float32)
+				  [13, 14, 15, 16]], dtype=np.float64)
 # mean_ = np.dstack([mean_, mean_])
 mean_ = np.reshape(mean_, (-1,4,4,1))
 mean = tf.convert_to_tensor(mean_)
@@ -165,26 +159,8 @@ pool_size = (2, 2)
 # DropoutTest(mean, variance)
 # ReLUTest(mean, variance)
 # LeakyReLU(mean, variance)
+# Conv2dTest(mean, variance)
 # ConvTranspose2dTest(mean, variance)
 # LinearTest(mean, variance)
 # BatchNorm2dTest(mean, variance)
-# softmaxTest(mean, variance)
-
-# mean1, variance1= Conv2dTest(mean, variance)
-# mean1, variance1= Conv2dTest(mean1, variance1)
-mean1, variance1= maxPool2dTest(mean, variance)
-mean1, variance1= maxPool2dTest(mean1, variance1)
-print(mean1)
-
-keep_variance_fn1 = lambda x: keep_variance(x, min_variance= 0.001)
-# conv1 = Conv2d(1, 16, 3, keep_variance_fn= keep_variance_fn1, name_="conv_3")
-maxPool2d = MaxPool2d()
-objs = [maxPool2d, maxPool2d]
-net = Sequential(mean, variance)
-with tf.Session() as sess:
-	sess.run(tf.global_variables_initializer())
-	sess.run(tf.local_variables_initializer())
-	smean, svar = sess.run(net)
-
-print('sequence')
-print(smean)
+softmaxTest(mean, variance)
