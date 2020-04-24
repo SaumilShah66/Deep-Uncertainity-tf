@@ -9,14 +9,18 @@ Reference : https://github.com/uzh-rpg/deep_uncertainty_estimation
 Done 
 - [x] Maxpool2d
 - [x] AvePool2d
-- [ ] Softmax
+- [x] Softmax
 - [x] ReLU
 - [x] LeakyReLU
 - [x] Dropout
-- [ ] Linear
-- [ ] BatchNorm2d
+- [x] Linear
+- [x] BatchNorm2d
 - [x] Conv2d
-- [ ] ConvTranspose2d
+- [x] ConvTranspose2d
 - [x] concatenate_as
-- [ ] Sequential
+- [x] Sequential
 
+## Current
+
+- Train RESNet model for cifar10
+- Train RESNet model for cifar10 on ADF
