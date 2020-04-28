@@ -59,6 +59,15 @@ def SetupAll(BasePath, CheckPointPath):
 
     return DirNamesTrain, SaveCheckPoint, ImageSize, NumTrainSamples, TrainLabels, NumClasses
 
+def setupValidation(BasePath):
+    DirValidName = SetupValidDirNames(BasePath)
+    LabelsPathTest = './TxtFiles/LabelsTest.txt'
+    TestLabels = ReadLabels(LabelsPathTest)
+    ImageSize = [32, 32, 3]
+    NumTestSamples = len(DirValidName)
+    return DirValidName, NumTestSamples, TestLabels
+
+
 def ReadLabels(LabelsPathTrain):
     if(not (os.path.isfile(LabelsPathTrain))):
         print('ERROR: Train Labels do not exist in '+LabelsPathTrain)
@@ -81,6 +90,10 @@ def SetupDirNames(BasePath):
     DirNamesTrain = ReadDirNames('./TxtFiles/DirNamesTrain.txt')        
     
     return DirNamesTrain
+
+def SetupValidDirNames(BasePath):
+    DirValidName = ReadDirNames('./TxtFiles/DirNamesTest.txt')
+    return DirValidName
 
 def ReadDirNames(ReadPath):
     """

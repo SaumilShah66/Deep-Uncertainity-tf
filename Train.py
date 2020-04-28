@@ -26,7 +26,7 @@ import Misc.ImageUtils as iu
 import random
 from skimage import data, exposure, img_as_float
 import matplotlib.pyplot as plt
-from Network.Network import CIFAR10Model, CIFARNormal
+from Network.Network import CIFARNormal
 # from Network.RESnet import CIFAR10Model
 # from Network.DenseNet import CIFAR10Model
 from Misc.MiscUtils import *
@@ -70,16 +70,10 @@ def GenerateBatch(BasePath, DirNamesTrain, TrainLabels, ImageSize, MiniBatchSize
 		RandImageName = BasePath + os.sep + DirNamesTrain[RandIdx] + '.png'  
 		ImageNum += 1
 		
-		##########################################################
-		# Add any standardization or data augmentation here!
-		##########################################################
 		img = np.float32(cv2.imread(RandImageName))
-		# img_b = tf.image.random_brightness(img, 0.2)
-		# img_flip = tf.image.random_flip_left_right(img)
-		if random.randint(0,1):
-			I1 = (iu.flipImage(img) - 127.0)/127.0
-		else:
-			I1 = (img - 127.0)/127.0
+
+		I1 = iu.StandardizeInputs(img)
+		
 		I1Batch.append(I1)
 		Variances.append(np.zeros_like(I1)+0.001)
 		Label = convertToOneHot(TrainLabels[RandIdx], 10)
@@ -104,7 +98,7 @@ def PrettyPrint(NumEpochs, DivTrain, MiniBatchSize, NumTrainSamples, LatestFile)
 
 def TrainOperation(ImgPH, VarPH, LabelPH, DirNamesTrain, TrainLabels, NumTrainSamples, ImageSize,
 				   NumEpochs, MiniBatchSize, SaveCheckPoint, CheckPointPath,
-				   DivTrain, LatestFile, BasePath, LogsPath):
+				   DivTrain, LatestFile, BasePath, LogsPath, lr, DirNamesValid, ValidLabels, NumValidSamples):
 	"""
 	Inputs: 
 	ImgPH is the Input Image placeholder
@@ -125,43 +119,47 @@ def TrainOperation(ImgPH, VarPH, LabelPH, DirNamesTrain, TrainLabels, NumTrainSa
 	Saves Trained network in CheckPointPath and Logs to LogsPath
 	"""      
 	# Predict output with forward pass
-	# cifar = CIFAR10Model()
+	# cifar = CIFAR_ADF()
 	cifar = CIFARNormal()
 	prLogits, prSoftMax = cifar.network(ImgPH)
 	# prLogits, prSoftMax = cifar.network(ImgPH, VarPH)
 
-	with tf.name_scope('Loss'):
-		###############################################
-		# Fill your loss function of choice here!
-		###############################################
-		cross_entropy = tf.nn.softmax_cross_entropy_with_logits(labels = LabelPH, logits = prLogits)
-		loss = tf.reduce_mean(cross_entropy)
+	with tf.name_scope('TrainingLoss'):
+		train_cross_entropy = tf.nn.softmax_cross_entropy_with_logits(labels = LabelPH, logits = prLogits)
+		TrainLoss = tf.reduce_mean(train_cross_entropy)
+		trainLossSummary = tf.summary.scalar("TrainingLossEveryIter", TrainLoss)
 
+	with tf.name_scope('ValidationLoss'):
+		Valid_cross_entropy = tf.nn.softmax_cross_entropy_with_logits(labels = LabelPH, logits = prLogits)
+		ValidLoss = tf.reduce_mean(Valid_cross_entropy)
+		validationLossSummary = tf.summary.scalar("ValidationLossEveryIter", ValidLoss)
 
-	with tf.name_scope('Accuracy'):
+	with tf.name_scope('TrainAccuracy'):
 		prSoftMaxDecoded = tf.argmax(prSoftMax, axis=1)
 		LabelDecoded = tf.argmax(LabelPH, axis=1)
-		Acc = tf.reduce_mean(tf.cast(tf.math.equal(prSoftMaxDecoded, LabelDecoded), dtype=tf.float32))
-		
+		TrainAcc = tf.reduce_mean(tf.cast(tf.math.equal(prSoftMaxDecoded, LabelDecoded), dtype=tf.float32))
+		trainingAccuracySummary = tf.summary.scalar("TrainingAccuracy", TrainAcc)
+
+	with tf.name_scope('ValidAccuracy'):
+		prSoftMaxDecoded = tf.argmax(prSoftMax, axis=1)
+		LabelDecoded = tf.argmax(LabelPH, axis=1)
+		ValidAcc = tf.reduce_mean(tf.cast(tf.math.equal(prSoftMaxDecoded, LabelDecoded), dtype=tf.float32))
+		validationAccuracySummary = tf.summary.scalar("ValidationAccuracy", ValidAcc)
+	
 	with tf.name_scope('Adam'):
-		###############################################
-		# Fill your optimizer of choice here!
-		###############################################
-		Optimizer = tf.train.AdamOptimizer(learning_rate = 3*1e-3).minimize(loss)
+		Optimizer = tf.train.AdamOptimizer(learning_rate = lr).minimize(TrainLoss)
 
-	# Tensorboard
-	# Create a summary to monitor loss tensor
-	tf.summary.scalar('LossEveryIter', loss)
-	tf.summary.scalar('Accuracy', Acc)
-	# Merge all summaries into a single operation
-	MergedSummaryOP = tf.summary.merge_all()
-
+	#### Training summary
+	TrainingSummary = tf.summary.merge([trainLossSummary, trainingAccuracySummary])
+	#### Validation summary
+	ValidationSummary = tf.summary.merge([validationLossSummary, validationAccuracySummary])
+	
 	# Setup Saver
 	Saver = tf.train.Saver(max_to_keep=None)
-	acc = []
+	TotalAcc = []
 	temp_acc = []
 	temp_loss = []
-	loss_ = []
+	TotalLoss = []
 	with tf.Session() as sess:       
 		if LatestFile is not None:
 			Saver.restore(sess, CheckPointPath + LatestFile + '.ckpt')
@@ -177,51 +175,55 @@ def TrainOperation(ImgPH, VarPH, LabelPH, DirNamesTrain, TrainLabels, NumTrainSa
 		Writer = tf.summary.FileWriter(LogsPath, graph=tf.get_default_graph())
 			
 		for Epochs in tqdm(range(StartEpoch, NumEpochs)):
+			
 			NumIterationsPerEpoch = int(NumTrainSamples/MiniBatchSize/DivTrain)
 			for PerEpochCounter in tqdm(range(NumIterationsPerEpoch)):
+				### Batch generation
 				I1Batch, VarBatch, LabelBatch = GenerateBatch(BasePath, DirNamesTrain, TrainLabels, ImageSize, MiniBatchSize)
+				
 				FeedDict = {ImgPH: I1Batch, VarPH: VarBatch, LabelPH: LabelBatch}
-				_, LossThisBatch, Summary = sess.run([Optimizer, loss, MergedSummaryOP], feed_dict=FeedDict)
+				_, LossThisBatch, TSummary, TAcc = sess.run([Optimizer, TrainLoss, TrainingSummary, TrainAcc], feed_dict=FeedDict)
+				
 				temp_loss.append(LossThisBatch)
-				temp_acc.append(sess.run([Acc], feed_dict=FeedDict))
+				temp_acc.append(TAcc)
 				# Save checkpoint every some SaveCheckPoint's iterations
-				if PerEpochCounter % SaveCheckPoint == 0:
+				if PerEpochCounter % 10 == 0:
 					# Save the Model learnt in this epoch
-					SaveName =  CheckPointPath + str(Epochs) + 'a' + str(PerEpochCounter) + 'model.ckpt'
-					# Saver.save(sess,  save_path=SaveName)
-					print('\n' + SaveName + ' Model Saved...')
-					print("Accuracy of model : " + str(sess.run([Acc], feed_dict=FeedDict)))
-					print("Loss of model : "+str(LossThisBatch))
-					
+					print("Accuracy of model : " + str(sum(temp_acc)/len(temp_acc)))
+					print("Loss of model : "+str(sum(temp_loss)))
+					TotalAcc.append(sum(temp_acc)/len(temp_acc))
+					TotalLoss.append(sum(temp_loss))
+					temp_loss, temp_acc = [], []
+
 				# Tensorboard
-				Writer.add_summary(Summary, Epochs*NumIterationsPerEpoch + PerEpochCounter)
+				Writer.add_summary(TSummary, Epochs*NumIterationsPerEpoch + PerEpochCounter)
 				# If you don't flush the tensorboard doesn't update until a lot of iterations!
 				Writer.flush()
 
+			print("--"*10+"After Epoch"+"--"*10)
+			print("Total Training Loss = "+str(sum(TotalLoss)))
+			print("Total Training Accuracy = "+str(sum(TotalAcc)/len(TotalAcc)))
+
+			NumIterationsPerEpoch = int(NumValidSamples/MiniBatchSize)
+			for PerEpochCounter in tqdm(range(NumIterationsPerEpoch)):
+				I1Batch, VarBatch, LabelBatch = GenerateBatch(BasePath, DirNamesValid, ValidLabels, ImageSize, MiniBatchSize)
+				FeedDict = {ImgPH: I1Batch, VarPH: VarBatch, LabelPH: LabelBatch}
+				LossThisBatch, VSummary = sess.run([ValidLoss, ValidationSummary], feed_dict=FeedDict)
+				temp_loss.append(LossThisBatch)
+				temp_acc.append(TAcc)
+				Writer.add_summary(VSummary, Epochs*NumIterationsPerEpoch + PerEpochCounter)
+				Writer.flush()
+			
 			# Save model every epoch
 			SaveName = CheckPointPath + str(Epochs) + 'model.ckpt'
 			Saver.save(sess, save_path=SaveName)
 			print('\n' + SaveName + ' Model Saved... ')
-			print("\n\n\n  After epoch")
-			loss_.append(np.array(temp_loss).sum())
-			acc.append(np.array(temp_acc).mean())
-			print("Total loss = "+str(np.array(temp_loss).sum()))
-			print("Total accuracy = "+str(np.array(temp_acc).mean()))
+			print("--"*10+"After Epoch"+"--"*10)
+			print("Total Test Loss = "+str(sum(temp_loss)))
+			print("Total Test Accuracy = "+str(sum(temp_acc)/len(temp_acc)))
+			print("--"*20)
 			temp_acc = []
 			temp_loss = []
-
-	fig, ax1 = plt.subplots()
-	color1 = 'tab:orange'
-	color2 = 'tab:blue'
-	ax1.set_xlabel('Epoch')
-	ax1.set_ylabel('Accuracy (%)',color=color2)
-	ax1.plot(np.array(acc)*100, label="Accuracy",color=color2)
-	ax2 = ax1.twinx()
-	ax2.set_ylabel("Total loss",color=color1)
-	ax2.plot(np.array(loss_), label="Loss", color=color1)
-	plt.show()
-	print(np.array(acc)*100)
-	print(loss_)
 
 def main():
 	"""
@@ -233,14 +235,14 @@ def main():
 	# Parse Command Line arguments
 
 	Parser = argparse.ArgumentParser()
-	Parser.add_argument('--BasePath', default='CIFAR10', help='Base path of images, Default:/media/nitin/Research/Homing/SpectralCompression/CIFAR10')
+	Parser.add_argument('--BasePath', default='../CIFAR10', help='Base path of images, Default:/media/nitin/Research/Homing/SpectralCompression/CIFAR10')
 	Parser.add_argument('--CheckPointPath', default='../Checkpoints/', help='Path to save Checkpoints, Default: ../Checkpoints/')
-	Parser.add_argument('--NumEpochs', type=int, default=15, help='Number of Epochs to Train for, Default:50')
+	Parser.add_argument('--NumEpochs', type=int, default=5, help='Number of Epochs to Train for, Default:50')
 	Parser.add_argument('--DivTrain', type=int, default=1, help='Factor to reduce Train data by per epoch, Default:1')
 	Parser.add_argument('--MiniBatchSize', type=int, default=32, help='Size of the MiniBatch to use, Default:1')
 	Parser.add_argument('--LoadCheckPoint', type=int, default=0, help='Load Model from latest Checkpoint from CheckPointsPath?, Default:0')
-	Parser.add_argument('--LogsPath', default='Logs/', help='Path to save Logs for Tensorboard, Default=Logs/')
-
+	Parser.add_argument('--LogsPath', default='../Logs/', help='Path to save Logs for Tensorboard, Default=Logs/')
+	Parser.add_argument('--Lr', type=float, default=0.001, help='Learning rate')
 	Args = Parser.parse_args()
 	NumEpochs = Args.NumEpochs
 	BasePath = Args.BasePath
@@ -249,10 +251,11 @@ def main():
 	LoadCheckPoint = Args.LoadCheckPoint
 	CheckPointPath = Args.CheckPointPath
 	LogsPath = Args.LogsPath
-
+	lr = Args.Lr
 	# Setup all needed parameters including file reading
 	print("Going to read files")
 	DirNamesTrain, SaveCheckPoint, ImageSize, NumTrainSamples, TrainLabels, NumClasses = SetupAll(BasePath, CheckPointPath)
+	DirNamesValid, NumValidSamples, ValidLabels = setupValidation(BasePath)
 	print("Parameters has been set properly...")
 
 
@@ -272,7 +275,7 @@ def main():
 	
 	TrainOperation(ImgPH, VarPH, LabelPH, DirNamesTrain, TrainLabels, NumTrainSamples, ImageSize,
 				   NumEpochs, MiniBatchSize, SaveCheckPoint, CheckPointPath,
-				   DivTrain, LatestFile, BasePath, LogsPath)
+				   DivTrain, LatestFile, BasePath, LogsPath, lr, DirNamesValid, ValidLabels, NumValidSamples)
 		
 	
 if __name__ == '__main__':

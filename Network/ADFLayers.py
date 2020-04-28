@@ -48,7 +48,7 @@ class AvgPool2d(tf.keras.Model):
 		super(AvgPool2d, self).__init__()
 		self._keep_variance_fn = keep_variance_fn
 
-	def call(self, input_mean, inputs_variance, pool_size):
+	def call(self, input_mean, inputs_variance, pool_size=(2,2)):
 		pool_layer = tf.keras.layers.AvgPool2D(pool_size=pool_size)
 		output_mean = pool_layer(input_mean)
 		output_variance = pool_layer(inputs_variance)
@@ -104,10 +104,10 @@ class ReLU(tf.keras.Model):
 	def __init__(self, keep_variance_fn=None, dtype = tf.float32):
 		super(ReLU, self).__init__()
 		self._keep_variance_fn = keep_variance_fn
-		self.dtype = dtype
+		self.dtype_ = dtype
 
 	def call(self, feature_mean, feature_variance):
-		feature_stddev = tf.cast(tf.sqrt(feature_variance), self.dtype)
+		feature_stddev = tf.cast(tf.sqrt(feature_variance), self.dtype_)
 		div = feature_mean / feature_stddev
 		pdf = normpdf(div)
 		cdf = normcdf(div)
@@ -189,13 +189,16 @@ class Conv2d(tf.keras.Model):
 		self.weight_shape = [self.kernel_size, self.kernel_size, in_channels, out_channels]
 		self.dtype_ = dtype_
 		self.weights_ = tf.get_variable(name=self.name_+"_Weight", dtype = self.dtype_, shape=list(self.weight_shape))
-		self.biases = tf.Variable(np.zeros(out_channels), dtype = self.dtype_)		
+		self.biasStatus = bias
+		if self.biasStatus:
+			self.biases = tf.Variable(np.zeros(out_channels), dtype = self.dtype_)		
 
 	def call(self, inputs_mean, inputs_variance):
 		## For mean
 		outputs_mean = tf.nn.conv2d(input= inputs_mean, filter = self.weights_, strides= self.stride,
 		 padding= self.padding, name = self.name_)
-		outputs_mean = tf.nn.bias_add(outputs_mean, self.biases)
+		if self.biasStatus:
+			outputs_mean = tf.nn.bias_add(outputs_mean, self.biases)
 		## For variance
 		outputs_variance = tf.nn.conv2d(input= inputs_variance, filter = self.weights_**2, strides= self.stride,
 		 padding= self.padding, name = self.name_)
@@ -280,7 +283,8 @@ class ConvTranspose2d(tf.keras.Model):
 
 
 class Linear(tf.keras.Model):
-	def __init__(self, inShape, outShape, bias=True, keep_variance_fn=None, name_='linear', dtype_=tf.float32):
+	def __init__(self, inShape, outShape, bias=True, keep_variance_fn=None, 
+		name_='linear', dtype_=tf.float32):
 		super(Linear, self).__init__()
 		self._keep_variance_fn = keep_variance_fn
 		self.biasStatus = bias
@@ -318,14 +322,14 @@ class BatchNorm2d(tf.keras.Model):
 		self.affine = affine
 		self.track_running_stats = track_running_stats
 		self.name_ = name_
-		self.dtype = dtype
+		self.dtype_ = dtype
 		
 	def call(self, inputs_mean, inputs_variance):
 		# exponential_average_factor is self.momentum set to
 		# (when it is available) only so that if gets updated
 		# in ONNX graph when this node is exported to ONNX.
 		if self.track_running_stats:
-			self.num_batches_tracked = tf.Variable(0, dtype=tf.int64)
+			self.num_batches_tracked = tf.Variable(0, dtype=self.dtype_)
 
 		if self.momentum is None:
 			exponential_average_factor = 0.0
@@ -342,16 +346,16 @@ class BatchNorm2d(tf.keras.Model):
 		input_shape = inputs_mean.shape.as_list()
 		weights = tf.random_uniform(input_shape[-1:], minval=0.0, maxval=1.0)
 		
-		bias = tf.zeros(input_shape[-1], dtype=self.dtype)
+		bias = tf.zeros(input_shape[-1], dtype=self.dtype_)
 
 		batchNormLayer = tf.keras.layers.BatchNormalization(momentum= exponential_average_factor, epsilon=self.eps,
 															moving_mean_initializer=tf.zeros_initializer(), moving_variance_initializer=tf.ones_initializer(),
 															center=False, scale=False, trainable=True,
 															adjustment= lambda input_shape: ( weights, bias))
 
-		outputs_mean = batchNormLayer(tf.cast(inputs_mean, dtype=self.dtype), training= (isTraining() or self.track_running_stats))
+		outputs_mean = batchNormLayer(inputs_mean, training= (isTraining() or self.track_running_stats))
 		outputs_variance = inputs_variance
-		outputs_variance = outputs_variance * (tf.cast(weights, dtype=self.dtype)**2)
+		outputs_variance = outputs_variance * (weights**2)
 		if self._keep_variance_fn is not None:
 			outputs_variance = self._keep_variance_fn(outputs_variance)
 		return outputs_mean, outputs_variance
@@ -396,73 +400,3 @@ def isTraining():
 ############################################################
 #############################################################
 
-class Conv2d_(tf.keras.Model):
-	def __init__(self, in_channels, out_channels, kernel_size, stride=1,
-				 padding='SAME', dilation=1, groups=1, bias=True,
-				 keep_variance_fn=None, name_='conv', dtype_ = tf.float32):
-		super(Conv2d_, self).__init__()
-		self._keep_variance_fn = keep_variance_fn
-		self.kernel_size = kernel_size
-		self.stride = [1,stride, stride,1]
-		self.padding = padding
-		self.dilation = dilation
-		self.name_ = name_
-		self.weight_shape = [self.kernel_size, self.kernel_size, in_channels, out_channels]
-		self.dtype_ = dtype_
-		self.weights_ = tf.get_variable(name=self.name_+"_Weight", dtype = self.dtype_, shape=list(self.weight_shape))
-		self.biases = tf.Variable(np.zeros(out_channels), dtype = self.dtype_)		
-
-	def call(self, inputs_mean):
-		## For mean
-		outputs_mean = tf.nn.conv2d(input= inputs_mean, filter = self.weights_, strides= self.stride,
-		 padding= self.padding, name = self.name_)
-		outputs_mean = tf.nn.bias_add(outputs_mean, self.biases)
-		return outputs_mean
-
-class Linear_(tf.keras.Model):
-	def __init__(self, inShape, outShape, bias=True, keep_variance_fn=None, 
-		name_='linear', dtype_=tf.float32):
-		super(Linear_, self).__init__()
-		self._keep_variance_fn = keep_variance_fn
-		self.biasStatus = bias
-		self.name_ = name_
-		self.dtype_ = dtype_
-		self.weights_ = tf.get_variable(name=self.name_+"_Weight",dtype=self.dtype_, 
-			shape=[outShape, inShape])
-		if self.biasStatus:
-			self.biases = tf.Variable(np.zeros(outShape), dtype=self.dtype_)
-
-	def call(self, inputs_mean):
-		input_shape = inputs_mean.shape.as_list()
-		if len(input_shape)==4:
-			input_shape = [input_shape[0], input_shape[1]*input_shape[2]*input_shape[3]]
-		self.in_features = input_shape[1]
-		# inputs_mean = tf.reshape(inputs_mean, [input_shape[0], input_shape[1]])
-		outputs_mean = tf.matmul(inputs_mean, self.weights_, transpose_b=True)
-		if self.biasStatus:
-			outputs_mean = tf.nn.bias_add(outputs_mean, self.biases)
-		return outputs_mean
-
-class Softmax_(tf.keras.Model):
-	def __init__(self, axis=0, keep_variance_fn=None):
-		super(Softmax_, self).__init__()
-		self.axis = axis
-		self._keep_variance_fn = keep_variance_fn
-
-	def call(self, features_mean, eps=1e-5):
-		"""Softmax function applied to a multivariate Gaussian distribution.
-		It works under the assumption that features_mean and features_variance 
-		are the parameters of a the indepent gaussians that contribute to the 
-		multivariate gaussian. 
-		Mean and variance of the log-normal distribution are computed following
-		https://en.wikipedia.org/wiki/Log-normal_distribution."""
-		
-		log_gaussian_mean = features_mean 
-		
-		log_gaussian_mean = tf.exp(log_gaussian_mean)
-		
-		constant = tf.reduce_sum(log_gaussian_mean, axis=self.axis) + eps
-		constant = tf.expand_dims(constant, axis=self.axis)
-
-		outputs_mean = log_gaussian_mean/constant
-		return outputs_mean

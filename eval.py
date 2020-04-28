@@ -26,8 +26,7 @@ import Misc.ImageUtils as iu
 import random
 from skimage import data, exposure, img_as_float
 import matplotlib.pyplot as plt
-from Network.Network import CIFARNormal
-# from Network.Network import CIFARNormal
+from Network.NetworkADF import CIFAR_ADF
 # from Network.RESnet import CIFAR10Model
 # from Network.DenseNet import CIFAR10Model
 from Misc.MiscUtils import *
@@ -75,7 +74,6 @@ def ReadImages(ImageSize, DataPath):
     ImageName = DataPath
     
     I1 = (cv2.imread(ImageName) - 127.0)/127.0
-    I1 = cv2.imread(ImageName)/255.0
     
     if(I1 is None):
         # OpenCV returns empty list if image is not read! 
@@ -107,8 +105,8 @@ def TestOperation(ImgPH, VarPH, ImageSize, ModelPath, DataPath, LabelsPathPred):
     Length = ImageSize[0]
     # Predict output with forward pass, MiniBatchSize for Test is 1
     # _, prSoftMaxS = CIFAR10Model(ImgPH, ImageSize, 1)
-    cifar = CIFARNormal()
-    prLogits, prSoftMaxS = cifar.network(ImgPH)
+    cifar = CIFAR_ADF()
+    prLogits, prSoftMaxS = cifar.network(ImgPH, VarPH)
 
     # Setup Saver
     Saver = tf.train.Saver()
@@ -195,7 +193,7 @@ def main():
     Parser.add_argument('--ModelPath', dest='ModelPath', default='../Checkpoints/', help='Path to load latest model from, Default:ModelPath')
     Parser.add_argument('--BasePath', dest='BasePath', default='../CIFAR10/Test/', help='Path to load images from, Default:BasePath')
     Parser.add_argument('--LabelsPath', dest='LabelsPath', default='./TxtFiles/LabelsTest.txt', help='Path of labels file, Default:./TxtFiles/LabelsTest.txt')
-    Parser.add_argument('--Epochs', dest='Epochs', default=30, help='Path of labels file, Default:./TxtFiles/LabelsTest.txt')
+    Parser.add_argument('--Epochs', dest='Epochs', default=1, help='Path of labels file, Default:./TxtFiles/LabelsTest.txt')
     Args = Parser.parse_args()
     ModelPath = Args.ModelPath
     BasePath = Args.BasePath
