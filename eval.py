@@ -73,7 +73,7 @@ def ReadImages(ImageSize, DataPath):
     
     ImageName = DataPath
     
-    I1 = (cv2.imread(ImageName) - 127.0)/127.0
+    I1 = cv2.imread(ImageName)
     
     if(I1 is None):
         # OpenCV returns empty list if image is not read! 
