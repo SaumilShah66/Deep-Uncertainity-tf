@@ -199,7 +199,7 @@ def main():
     ModelPath = Args.ModelPath
     BasePath = Args.BasePath
     LabelsPath = Args.LabelsPath
-    epochs = Args.Epochs
+    epoch = Args.Epochs
     # Setup all needed parameters including file reading
     ImageSize, DataPath = SetupAll(BasePath)
 
