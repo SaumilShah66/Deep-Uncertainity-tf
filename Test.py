@@ -74,8 +74,7 @@ def ReadImages(ImageSize, DataPath):
     
     ImageName = DataPath
     
-    I1 = (cv2.imread(ImageName) - 127.0)/127.0
-    I1 = cv2.imread(ImageName)/255.0
+    I1 = cv2.imread(ImageName)
     
     if(I1 is None):
         # OpenCV returns empty list if image is not read! 
@@ -210,25 +209,25 @@ def main():
     LabelsPathPred = './TxtFiles/PredOut.txt' # Path to save predicted labels
 
     acc = []
-    for epoch in range(epochs):
-        model_path = ModelPath+str(epoch)+"model.ckpt"
-        BasePath = Args.BasePath
-        LabelsPath = Args.LabelsPath
-        tf.reset_default_graph()
-        # Setup all needed parameters including file reading
-        ImageSize, DataPath = SetupAll(BasePath)
+    # for epoch in range(epochs):
+    model_path = ModelPath+str(epoch)+"model.ckpt"
+    BasePath = Args.BasePath
+    LabelsPath = Args.LabelsPath
+    tf.reset_default_graph()
+    # Setup all needed parameters including file reading
+    ImageSize, DataPath = SetupAll(BasePath)
 
-        # Define PlaceHolder variables for Input and Predicted output
-        ImgPH = tf.placeholder('float', shape=(1, ImageSize[0], ImageSize[1], 3))
-        VarPH = tf.placeholder(tf.float32, shape=(1, ImageSize[0], ImageSize[1], ImageSize[2]))
-        TestOperation(ImgPH, VarPH, ImageSize, model_path, DataPath, LabelsPathPred)    
-        LabelsTrue, LabelsPred = ReadLabels(LabelsPath, LabelsPathPred)
-        acc.append(ConfusionMatrix(LabelsTrue, LabelsPred))
+    # Define PlaceHolder variables for Input and Predicted output
+    ImgPH = tf.placeholder('float', shape=(1, ImageSize[0], ImageSize[1], 3))
+    VarPH = tf.placeholder(tf.float32, shape=(1, ImageSize[0], ImageSize[1], ImageSize[2]))
+    TestOperation(ImgPH, VarPH, ImageSize, model_path, DataPath, LabelsPathPred)    
+    LabelsTrue, LabelsPred = ReadLabels(LabelsPath, LabelsPathPred)
+    acc.append(ConfusionMatrix(LabelsTrue, LabelsPred))
         
-    plt.plot(acc)
-    print(acc)
-    plt.show()
-    print(acc)
+    # plt.plot(acc)
+    # print(acc)
+    # plt.show()
+    # print(acc)
 
      
 if __name__ == '__main__':
