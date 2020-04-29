@@ -185,14 +185,14 @@ def TrainOperation(ImgPH, VarPH, LabelPH, DirNamesTrain, TrainLabels, NumTrainSa
 				_, LossThisBatch, TSummary, TAcc = sess.run([Optimizer, TrainLoss, TrainingSummary, TrainAcc], feed_dict=FeedDict)
 				
 				temp_loss.append(LossThisBatch)
+				TotalLoss.append(LossThisBatch)
 				temp_acc.append(TAcc)
+				TotalAcc.append(TAcc)
 				# Save checkpoint every some SaveCheckPoint's iterations
 				if PerEpochCounter % 10 == 0:
 					# Save the Model learnt in this epoch
 					print("Accuracy of model : " + str(sum(temp_acc)/len(temp_acc)))
 					print("Loss of model : "+str(sum(temp_loss)))
-					TotalAcc.append(sum(temp_acc)/len(temp_acc))
-					TotalLoss.append(sum(temp_loss))
 					temp_loss, temp_acc = [], []
 
 				# Tensorboard
@@ -203,6 +203,7 @@ def TrainOperation(ImgPH, VarPH, LabelPH, DirNamesTrain, TrainLabels, NumTrainSa
 			print("--"*10+"After Epoch"+"--"*10)
 			print("Total Training Loss = "+str(sum(TotalLoss)))
 			print("Total Training Accuracy = "+str(sum(TotalAcc)/len(TotalAcc)))
+			temp_loss, temp_acc, TotalAcc, TotalLoss = [], [], [], []
 
 			NumIterationsPerEpoch = int(NumValidSamples/MiniBatchSize)
 			for PerEpochCounter in tqdm(range(NumIterationsPerEpoch)):
