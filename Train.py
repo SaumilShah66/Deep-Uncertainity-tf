@@ -155,7 +155,7 @@ def TrainOperation(ImgPH, VarPH, LabelPH, DirNamesTrain, TrainLabels, NumTrainSa
 	ValidationSummary = tf.summary.merge([validationLossSummary, validationAccuracySummary])
 	
 	# Setup Saver
-	Saver = tf.train.Saver(max_to_keep=None)
+	Saver = tf.train.Saver()
 	TotalAcc = []
 	temp_acc = []
 	temp_loss = []

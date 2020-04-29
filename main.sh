@@ -1,0 +1,1 @@
+python Train.py --Lr=0.1 --MiniBatchSize=128 --NumEpochs=50 
