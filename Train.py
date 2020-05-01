@@ -135,9 +135,9 @@ def TrainOperation(ImgPH, VarPH, LabelPH, DirNamesTrain, TrainLabels, NumTrainSa
 		validationLossSummary = tf.summary.scalar("ValidationLossEveryIter", ValidLoss)
 
 	with tf.name_scope('TrainAccuracy'):
-		prSoftMaxDecoded = tf.argmax(prSoftMax, axis=1)
-		LabelDecoded = tf.argmax(LabelPH, axis=1)
-		TrainAcc = tf.reduce_mean(tf.cast(tf.math.equal(prSoftMaxDecoded, LabelDecoded), dtype=tf.float32))
+		prSoftMaxDecodedT = tf.argmax(prSoftMax, axis=1)
+		LabelDecodedT = tf.argmax(LabelPH, axis=1)
+		TrainAcc = tf.reduce_mean(tf.cast(tf.math.equal(prSoftMaxDecodedT, LabelDecodedT), dtype=tf.float32))
 		trainingAccuracySummary = tf.summary.scalar("TrainingAccuracy", TrainAcc)
 
 	with tf.name_scope('ValidAccuracy'):
@@ -209,9 +209,9 @@ def TrainOperation(ImgPH, VarPH, LabelPH, DirNamesTrain, TrainLabels, NumTrainSa
 			for PerEpochCounter in tqdm(range(NumIterationsPerEpoch)):
 				I1Batch, VarBatch, LabelBatch = GenerateBatch(BasePath, DirNamesValid, ValidLabels, ImageSize, MiniBatchSize)
 				FeedDict = {ImgPH: I1Batch, VarPH: VarBatch, LabelPH: LabelBatch}
-				LossThisBatch, VSummary = sess.run([ValidLoss, ValidationSummary], feed_dict=FeedDict)
+				LossThisBatch, VSummary, VAcc = sess.run([ValidLoss, ValidationSummary, ValidAcc], feed_dict=FeedDict)
 				temp_loss.append(LossThisBatch)
-				temp_acc.append(TAcc)
+				temp_acc.append(VAcc)
 				Writer.add_summary(VSummary, Epochs*NumIterationsPerEpoch + PerEpochCounter)
 				Writer.flush()
 			

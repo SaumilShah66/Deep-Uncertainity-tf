@@ -193,7 +193,7 @@ def main():
     Parser.add_argument('--ModelPath', dest='ModelPath', default='../Checkpoints/', help='Path to load latest model from, Default:ModelPath')
     Parser.add_argument('--BasePath', dest='BasePath', default='../CIFAR10/Test/', help='Path to load images from, Default:BasePath')
     Parser.add_argument('--LabelsPath', dest='LabelsPath', default='./TxtFiles/LabelsTest.txt', help='Path of labels file, Default:./TxtFiles/LabelsTest.txt')
-    Parser.add_argument('--Epochs', dest='Epochs', default=1, help='Path of labels file, Default:./TxtFiles/LabelsTest.txt')
+    Parser.add_argument('--Epochs', dest='Epochs', default=199, help='Path of labels file, Default:./TxtFiles/LabelsTest.txt')
     Args = Parser.parse_args()
     ModelPath = Args.ModelPath
     BasePath = Args.BasePath

@@ -124,7 +124,7 @@ def TestOperation(ImgPH, VarPH, ImageSize, ModelPath, DataPath, LabelsPathPred):
             Img, Var, ImgOrg = ReadImages(ImageSize, DataPathNow)
             FeedDict = {ImgPH: Img, VarPH: Var}
             PredT = np.argmax(sess.run(prSoftMaxS, FeedDict))
-
+            # print(str(count)+)
             OutSaveT.write(str(PredT)+'\n')
             
         OutSaveT.close()
@@ -192,9 +192,9 @@ def main():
     # Parse Command Line arguments
     Parser = argparse.ArgumentParser()
     Parser.add_argument('--ModelPath', dest='ModelPath', default='../Checkpoints/', help='Path to load latest model from, Default:ModelPath')
-    Parser.add_argument('--BasePath', dest='BasePath', default='../CIFAR10/Test/', help='Path to load images from, Default:BasePath')
-    Parser.add_argument('--LabelsPath', dest='LabelsPath', default='./TxtFiles/LabelsTest.txt', help='Path of labels file, Default:./TxtFiles/LabelsTest.txt')
-    Parser.add_argument('--Epochs', dest='Epochs', default=30, help='Path of labels file, Default:./TxtFiles/LabelsTest.txt')
+    Parser.add_argument('--BasePath', dest='BasePath', default='../CIFAR10/Train/', help='Path to load images from, Default:BasePath')
+    Parser.add_argument('--LabelsPath', dest='LabelsPath', default='./TxtFiles/LabelsTrain.txt', help='Path of labels file, Default:./TxtFiles/LabelsTest.txt')
+    Parser.add_argument('--Epochs', dest='Epochs', default=198, help='Path of labels file, Default:./TxtFiles/LabelsTest.txt')
     Args = Parser.parse_args()
     ModelPath = Args.ModelPath
     BasePath = Args.BasePath
@@ -204,7 +204,7 @@ def main():
     ImageSize, DataPath = SetupAll(BasePath)
 
     # Define PlaceHolder variables for Input and Predicted output
-    ImgPH = tf.placeholder('float', shape=(1, ImageSize[0], ImageSize[1], 3))
+    # ImgPH = tf.placeholder('float', shape=(1, ImageSize[0], ImageSize[1], 3))
     
     LabelsPathPred = './TxtFiles/PredOut.txt' # Path to save predicted labels
 
@@ -229,7 +229,26 @@ def main():
     # plt.show()
     # print(acc)
 
-     
+def test():
+    path = "../CIFAR10/Train/19.png"
+    I1S = iu.StandardizeInputs(np.float32(cv2.imread(path)))
+    I1Combined = np.expand_dims(I1S, axis=0)
+    ImageSize = [32, 32, 3]
+    ImgPH = tf.placeholder('float', shape=(1, ImageSize[0], ImageSize[1], 3))
+    
+    cifar = CIFARNormal()
+    prLogits, prSoftMaxS = cifar.network(ImgPH)
+    
+    model_path = "../Checkpoints/198model.ckpt"
+    Saver = tf.train.Saver()
+
+    with tf.Session() as sess:
+        Saver.restore(sess, model_path)
+        FeedDict = {ImgPH: I1Combined}
+        PredT = np.argmax(sess.run(prSoftMaxS, FeedDict))
+    print(PredT)
+
 if __name__ == '__main__':
-    main()
+    # main()
+    test()
  
