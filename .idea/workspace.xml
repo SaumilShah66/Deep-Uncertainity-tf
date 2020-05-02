@@ -21,8 +21,18 @@
   <component name="ChangeListManager">
     <list default="true" id="16fde7d6-9320-4d39-9073-574e155b47d6" name="Default Changelist" comment="typo-removed">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Misc/DataUtils.py" beforeDir="false" afterPath="$PROJECT_DIR$/Misc/DataUtils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Network/ADFLayers.py" beforeDir="false" afterPath="$PROJECT_DIR$/Network/ADFLayers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Network/Layers.py" beforeDir="false" afterPath="$PROJECT_DIR$/Network/Layers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Network/Network.py" beforeDir="false" afterPath="$PROJECT_DIR$/Network/Network.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Test.py" beforeDir="false" afterPath="$PROJECT_DIR$/Test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Train.py" beforeDir="false" afterPath="$PROJECT_DIR$/Train.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TxtFiles/DirNamesTest.txt" beforeDir="false" afterPath="$PROJECT_DIR$/TxtFiles/DirNamesTest.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TxtFiles/DirNamesTrain.txt" beforeDir="false" afterPath="$PROJECT_DIR$/TxtFiles/DirNamesTrain.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TxtFiles/LabelsTest.txt" beforeDir="false" afterPath="$PROJECT_DIR$/TxtFiles/LabelsTest.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TxtFiles/LabelsTrain.txt" beforeDir="false" afterPath="$PROJECT_DIR$/TxtFiles/LabelsTrain.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TxtFiles/PredOut.txt" beforeDir="false" afterPath="$PROJECT_DIR$/TxtFiles/PredOut.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tf/adfLayers.py" beforeDir="false" afterPath="$PROJECT_DIR$/tf/adfLayers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tf/tf_adf_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/tf/tf_adf_test.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -39,6 +49,7 @@
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
+    <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
@@ -46,6 +57,48 @@
     <property name="settings.editor.selected.configurable" value="preferences.sourceCode.Python" />
   </component>
   <component name="RunManager" selected="Python.tf_adf_test">
+    <configuration name="Test" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="Deep-Uncertainity-tf" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="$USER_HOME$/PycharmProjects/PRG/venv/bin/python" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Test.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Train" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="Deep-Uncertainity-tf" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="$USER_HOME$/PycharmProjects/PRG/venv/bin/python" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Train.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="tf_adf_test" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Deep-Uncertainity-tf" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -109,33 +162,13 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="trials" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="Deep-Uncertainity-tf" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/torch" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/torch/trials.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
     <recent_temporary>
       <list>
         <item itemvalue="Python.tf_adf_test" />
+        <item itemvalue="Python.Test" />
+        <item itemvalue="Python.Train" />
         <item itemvalue="Python.torch_adf_test" />
         <item itemvalue="Python.trials (1)" />
-        <item itemvalue="Python.trials" />
       </list>
     </recent_temporary>
   </component>
@@ -177,6 +210,14 @@
     <option name="LAST_COMMIT_MESSAGE" value="typo-removed" />
   </component>
   <component name="WindowStateProjectService">
+    <state x="593" y="40" key="#Test" timestamp="1588382758393">
+      <screen x="65" y="24" width="1855" height="1056" />
+    </state>
+    <state x="593" y="40" key="#Test/65.24.1855.1056@65.24.1855.1056" timestamp="1588382758393" />
+    <state x="593" y="40" key="#Train" timestamp="1588381910426">
+      <screen x="65" y="24" width="1855" height="1056" />
+    </state>
+    <state x="593" y="40" key="#Train/65.24.1855.1056@65.24.1855.1056" timestamp="1588381910426" />
     <state x="453" y="190" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1587092948644">
       <screen x="65" y="24" width="1855" height="1056" />
     </state>
@@ -189,22 +230,22 @@
       <screen x="65" y="24" width="1855" height="1056" />
     </state>
     <state x="807" y="235" key="EnvironmentVariablesDialog/65.24.1855.1056@65.24.1855.1056" timestamp="1588378260298" />
-    <state width="1827" height="373" key="GridCell.Tab.0.bottom" timestamp="1588380881022">
+    <state width="1827" height="480" key="GridCell.Tab.0.bottom" timestamp="1588386071198">
       <screen x="65" y="24" width="1855" height="1056" />
     </state>
-    <state width="1827" height="373" key="GridCell.Tab.0.bottom/65.24.1855.1056@65.24.1855.1056" timestamp="1588380881022" />
-    <state width="1827" height="373" key="GridCell.Tab.0.center" timestamp="1588380881022">
+    <state width="1827" height="480" key="GridCell.Tab.0.bottom/65.24.1855.1056@65.24.1855.1056" timestamp="1588386071198" />
+    <state width="1827" height="480" key="GridCell.Tab.0.center" timestamp="1588386071198">
       <screen x="65" y="24" width="1855" height="1056" />
     </state>
-    <state width="1827" height="373" key="GridCell.Tab.0.center/65.24.1855.1056@65.24.1855.1056" timestamp="1588380881022" />
-    <state width="1827" height="373" key="GridCell.Tab.0.left" timestamp="1588380881018">
+    <state width="1827" height="480" key="GridCell.Tab.0.center/65.24.1855.1056@65.24.1855.1056" timestamp="1588386071198" />
+    <state width="1827" height="480" key="GridCell.Tab.0.left" timestamp="1588386071197">
       <screen x="65" y="24" width="1855" height="1056" />
     </state>
-    <state width="1827" height="373" key="GridCell.Tab.0.left/65.24.1855.1056@65.24.1855.1056" timestamp="1588380881018" />
-    <state width="1827" height="373" key="GridCell.Tab.0.right" timestamp="1588380881022">
+    <state width="1827" height="480" key="GridCell.Tab.0.left/65.24.1855.1056@65.24.1855.1056" timestamp="1588386071197" />
+    <state width="1827" height="480" key="GridCell.Tab.0.right" timestamp="1588386071198">
       <screen x="65" y="24" width="1855" height="1056" />
     </state>
-    <state width="1827" height="373" key="GridCell.Tab.0.right/65.24.1855.1056@65.24.1855.1056" timestamp="1588380881022" />
+    <state width="1827" height="480" key="GridCell.Tab.0.right/65.24.1855.1056@65.24.1855.1056" timestamp="1588386071198" />
     <state x="486" y="174" key="SettingsEditor" timestamp="1587503740588">
       <screen x="65" y="24" width="1855" height="1056" />
     </state>

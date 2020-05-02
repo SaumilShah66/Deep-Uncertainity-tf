@@ -349,16 +349,20 @@ class BatchNorm2d(tf.keras.Model):
 		self.isTraining = training
 
 	def call(self, inputs_mean, inputs_variance):
-		shape = inputs_mean.get_shape().as_list()
+		shape = inputs_mean.get_shape().as_list()  # tf.constant_initializer(1.0)
 		# gamma: a trainable scale factor
-		gamma = tf.get_variable(self.name_+"gamma", shape[-1], initializer=tf.constant_initializer(1.0), trainable=True)
+		gamma = tf.get_variable(self.name_ + "gamma", shape[-1], initializer=tf.ones_initializer(), trainable=True)
 		# beta: a trainable shift value
-		beta = tf.get_variable(self.name_+"beta", shape[-1], initializer=tf.constant_initializer(0.0), trainable=True)
-		moving_avg = tf.get_variable(self.name_+"moving_avg", shape[-1], initializer=tf.constant_initializer(0.0), trainable=True)
-		moving_var = tf.get_variable(self.name_+"moving_var", shape[-1], initializer=tf.constant_initializer(1.0), trainable=True)
-		if self.isTraining:
+		beta = tf.get_variable(self.name_ + "beta", shape[-1], initializer=tf.zeros_initializer(), trainable=True)
+		moving_avg = tf.get_variable(self.name_ + "moving_avg", shape[-1], initializer=tf.zeros_initializer(),
+									 trainable=False)
+		moving_var = tf.get_variable(self.name_ + "moving_var", shape[-1], initializer=tf.ones_initializer(),
+									 trainable=False)
+		if True:
 			# tf.nn.moments == Calculate the mean and the variance of the tensor x
 			avg, var = tf.nn.moments(inputs_mean, list(range(len(shape)-1)))
+			moving_avg = tf.assign(moving_avg,avg, validate_shape= True, name= self.name_+"moving_avg")
+			moving_var= tf.assign(moving_var,var, validate_shape= True, name= self.name_+"moving_var")
 			# avg, var = tf.nn.moments(inputs_mean, [0,1,2])
 			# update_moving_avg = moving_averages.assign_moving_average(moving_avg, avg, decay)
 			# update_moving_var = moving_averages.assign_moving_average(moving_var, var, decay)
@@ -368,7 +372,7 @@ class BatchNorm2d(tf.keras.Model):
 			var = moving_var
 			control_inputs = []
 		# with tf.control_dependencies(control_inputs):
-		outputs_mean = tf.nn.batch_normalization(inputs_mean, avg, var, offset=beta, scale=gamma, variance_epsilon=self.eps)
+		outputs_mean = tf.nn.batch_normalization(inputs_mean, moving_avg, moving_var, offset=beta, scale=gamma, variance_epsilon=self.eps)
 
 
 

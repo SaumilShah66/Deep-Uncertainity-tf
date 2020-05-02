@@ -75,7 +75,7 @@ def ReadLabels(LabelsPathTrain):
     else:
         TrainLabels = open(LabelsPathTrain, 'r')
         TrainLabels = TrainLabels.read()
-        TrainLabels = map(float, TrainLabels.split())
+        TrainLabels = list(map(float, TrainLabels.split()))
 
     return TrainLabels
     

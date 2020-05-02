@@ -250,14 +250,16 @@ def test():
     cifar = CIFARNormal()
     prLogits, prSoftMaxS = cifar.network(ImgPH)
 
-    with tf.name_scope('ValidAccuracy'):
-        prSoftMaxDecoded = tf.argmax(prSoftMax, axis=1)
-        LabelDecoded = tf.argmax(LabelPH, axis=1)
-        ValidAcc = tf.reduce_mean(tf.cast(tf.math.equal(prSoftMaxDecoded, LabelDecoded), dtype=tf.float32))
+    # with tf.name_scope('ValidAccuracy'):
+    #     prSoftMaxDecoded = tf.argmax(prSoftMax, axis=1)
+    #     LabelDecoded = tf.argmax(LabelPH, axis=1)
+    #     ValidAcc = tf.reduce_mean(tf.cast(tf.math.equal(prSoftMaxDecoded, LabelDecoded), dtype=tf.float32))
     
     model_path = "../Checkpoints/198model.ckpt"
     Saver = tf.train.Saver()
-
+    for i, var in enumerate(Saver._var_list):
+        print('Var {}: {}'.format(i, var))
+    
     with tf.Session() as sess:
         Saver.restore(sess, model_path)
         FeedDict = {ImgPH: I1Combined}
