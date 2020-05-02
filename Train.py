@@ -153,7 +153,7 @@ def TrainOperation(ImgPH, VarPH, LabelPH, DirNamesTrain, TrainLabels, NumTrainSa
 	#### Training summary
 	TrainingSummary = tf.summary.merge([trainLossSummary, trainingAccuracySummary])
 	#### Validation summary
-	ValidationSummary = tf.summary.merge([validationLossSummary, validationAccuracySummary])
+	# ValidationSummary = tf.summary.merge([validationLossSummary, validationAccuracySummary])
 	
 	# Setup Saver
 	Saver = tf.train.Saver()
