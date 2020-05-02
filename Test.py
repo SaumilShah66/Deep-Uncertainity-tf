@@ -125,12 +125,12 @@ def TestOperation(ImgPH, VarPH, ImageSize, ModelPath, DataPath, LabelsPathPred):
             Img, Var, ImgOrg = ReadImages(ImageSize, DataPathNow)
             FeedDict = {ImgPH: Img, VarPH: Var}
             Prediction, logits = sess.run([prSoftMaxS, prLogits], FeedDict)
-            print("----"*10)
-            print("Softmax values -- ",Prediction)
-            print("Logits ---",logits)
+            # print("----"*10)
+            # print("Softmax values -- ",Prediction)
+            # print("Logits ---",logits)
             PredT = np.argmax(Prediction)
-            print(PredT)
-            print("---"*10)
+            # print(PredT)
+            # print("---"*10)
             # print("Training status -- ",isTraining())
             # print(str(count)+)
             OutSaveT.write(str(PredT)+'\n')
@@ -145,8 +145,8 @@ def Accuracy(Pred, GT):
     Outputs:
     Accuracy in percentage
     """
-    print("Predictions ---\n",Pred)
-    print("Actual ----\n",GT)
+    # print("Predictions ---\n",Pred)
+    # print("Actual ----\n",GT)
     return (np.sum(np.array(Pred)==np.array(GT))*100.0/len(Pred))
 
 def ReadLabels(LabelsPathTest, LabelsPathPred):
@@ -233,7 +233,7 @@ def main():
     TestOperation(ImgPH, VarPH, ImageSize, model_path, DataPath, LabelsPathPred)    
     LabelsTrue, LabelsPred = ReadLabels(LabelsPath, LabelsPathPred)
     print(Accuracy(LabelsPred,LabelsTrue))
-    # acc.append(ConfusionMatrix(LabelsTrue, LabelsPred))
+    acc.append(ConfusionMatrix(LabelsTrue, LabelsPred))
         
     # plt.plot(acc)
     # print(acc)

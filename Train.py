@@ -78,8 +78,8 @@ def GenerateBatch(BasePath, DirNamesTrain, TrainLabels, ImageSize, MiniBatchSize
 		Variances.append(np.zeros_like(I1)+0.001)
 		Label = convertToOneHot(TrainLabels[RandIdx], 10)
 		LabelBatch.append(Label)
-		print("Randoms --- ", RandIdx, "--",TrainLabels[RandIdx])
-	print("Labels original ---",LabelBatch)
+	# 	print("Randoms --- ", RandIdx, "--",TrainLabels[RandIdx])
+	# print("Labels original ---",LabelBatch)
 	return I1Batch, Variances, LabelBatch
 
 
