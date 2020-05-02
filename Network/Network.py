@@ -13,8 +13,8 @@ University of Maryland, College Park
 import tensorflow as tf
 import sys
 import numpy as np
-import Network.ADFLayers as ADF
-import Network.Layers as Layers
+import ADFLayers as ADF
+import Layers as Layers
 # Don't generate pyc codes
 sys.dont_write_bytecode = True
 
