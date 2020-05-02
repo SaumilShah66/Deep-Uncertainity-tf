@@ -107,13 +107,17 @@ class ReLU(tf.keras.Model):
 		self.dtype = dtype
 
 	def call(self, feature_mean, feature_variance):
-		feature_stddev = tf.cast(tf.sqrt(feature_variance), self.dtype)
-		div = feature_mean / feature_stddev
-		pdf = normpdf(div)
-		cdf = normcdf(div)
-		output_mean = feature_mean * cdf + feature_stddev * pdf
-		output_variance = (feature_mean ** 2 + feature_variance) * cdf \
-						   + feature_mean * feature_stddev * pdf - output_mean ** 2
+		# feature_stddev = tf.cast(tf.sqrt(feature_variance), self.dtype)
+		# div = feature_mean / feature_stddev
+		# pdf = normpdf(div)
+		# cdf = normcdf(div)
+		# output_mean = feature_mean * cdf + feature_stddev * pdf
+		# output_variance = (feature_mean ** 2 + feature_variance) * cdf \
+		# 				   + feature_mean * feature_stddev * pdf - output_mean ** 2
+		# if self._keep_variance_fn is not None:
+		# 	output_variance = self._keep_variance_fn(output_variance)
+		output_mean = tf.nn.relu(feature_mean)
+		output_variance = tf.where(output_mean==0, tf.zeros_like(feature_variance), feature_variance)
 		if self._keep_variance_fn is not None:
 			output_variance = self._keep_variance_fn(output_variance)
 		return output_mean, output_variance

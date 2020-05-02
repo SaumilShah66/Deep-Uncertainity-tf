@@ -28,7 +28,7 @@ from skimage import data, exposure, img_as_float
 import matplotlib.pyplot as plt
 from Network.Network import CIFARNormal
 # from Network.NetworkADF import CIFAR_ADF
-# from Network.NetworkADF_NOBN import CIFAR_ADF
+from Network.NetworkADF_NOBN import CIFAR_ADF
 # from Network.RESnet import CIFAR10Model
 # from Network.DenseNet import CIFAR10Model
 from Misc.MiscUtils import *
@@ -122,10 +122,10 @@ def TrainOperation(ImgPH, VarPH, LabelPH, DirNamesTrain, TrainLabels, NumTrainSa
 	Saves Trained network in CheckPointPath and Logs to LogsPath
 	"""      
 	# Predict output with forward pass
-	# cifar = CIFAR_ADF()
-	cifar = CIFARNormal()
-	prLogits, prSoftMax = cifar.network(ImgPH)
-	# prLogits, prSoftMax = cifar.network(ImgPH, VarPH)
+	cifar = CIFAR_ADF()
+	# cifar = CIFARNormal()
+	# prLogits, prSoftMax = cifar.network(ImgPH)
+	prLogits, prSoftMax = cifar.network(ImgPH, VarPH)
 
 	with tf.name_scope('TrainingLoss'):
 		train_cross_entropy = tf.nn.softmax_cross_entropy_with_logits(labels = LabelPH, logits = prLogits)
@@ -222,9 +222,9 @@ def main():
 	Parser = argparse.ArgumentParser()
 	Parser.add_argument('--BasePath', default='../CIFAR10', help='Base path of images, Default:/media/nitin/Research/Homing/SpectralCompression/CIFAR10')
 	Parser.add_argument('--CheckPointPath', default='../Checkpoints/', help='Path to save Checkpoints, Default: ../Checkpoints/')
-	Parser.add_argument('--NumEpochs', type=int, default=30, help='Number of Epochs to Train for, Default:50')
+	Parser.add_argument('--NumEpochs', type=int, default=5, help='Number of Epochs to Train for, Default:50')
 	Parser.add_argument('--DivTrain', type=int, default=1, help='Factor to reduce Train data by per epoch, Default:1')
-	Parser.add_argument('--MiniBatchSize', type=int, default=128, help='Size of the MiniBatch to use, Default:1')
+	Parser.add_argument('--MiniBatchSize', type=int, default=64, help='Size of the MiniBatch to use, Default:1')
 	Parser.add_argument('--LoadCheckPoint', type=int, default=0, help='Load Model from latest Checkpoint from CheckPointsPath?, Default:0')
 	Parser.add_argument('--LogsPath', default='../Logs/', help='Path to save Logs for Tensorboard, Default=Logs/')
 	Parser.add_argument('--Lr', type=float, default=0.01, help='Learning rate')
