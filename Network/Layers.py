@@ -218,38 +218,88 @@ class BatchNorm2d(tf.keras.Model):
 		self.name_ = name_
 		self.dtype_ = dtype_
 		self.isTraining = training
-		# if self.track_running_stats:
-		# 	self.num_batches_tracked = tf.Variable(0, dtype=self.dtype_)
-
-	def call(self, inputs_mean):
-		# if self.momentum is None:
-		# 	exponential_average_factor = 0.0
-		# else:
-		# 	exponential_average_factor = self.momentum
-		# if self.isTraining and self.track_running_stats:
-		# 	if self.num_batches_tracked is not None:
-		# 		self.num_batches_tracked.assign_add(1)
-		# 		if self.momentum is None:  # use cumulative moving average
-		# 			exponential_average_factor = 1.0 / self.num_batches_tracked
-		# 		else:  # use exponential moving average
-		# 			exponential_average_factor = self.momentum
-
-		input_shape = inputs_mean.shape.as_list()
-
-		self.means = tf.get_variable(name=self.name_+"_mean",dtype=self.dtype_, 
-			shape=[input_shape[3]])
-		self.variances = tf.get_variable(name=self.name_+"_variance",dtype=self.dtype_, 
-			shape=[input_shape[3]])
-		# weights = tf.random_uniform(input_shape[-1:], minval=0.0, maxval=1.0)
-		self.offset = tf.Variable(np.zeros([input_shape[3]]), dtype=self.dtype_)
-		self.scale = tf.Variable(np.ones([input_shape[3]]), dtype=self.dtype_)
-		# batchNormLayer = tf.keras.layers.BatchNormalization(momentum= self.momentum, epsilon=self.eps,
-		# 													moving_mean_initializer=tf.zeros_initializer(), moving_variance_initializer=tf.ones_initializer(),
-		# 													center=False, scale=False, trainable=True)
-		# 													#adjustment= lambda input_shape: ( weights, bias))
 		
-		outputs_mean = tf.nn.batch_normalization(inputs_mean, self.means, self.variances, self.offset, self.scale, 
-			self.eps, name=self.name_+"_Batch")
+	def call(self, inputs_mean):
+		shape = inputs_mean.get_shape().as_list()
+		# gamma: a trainable scale factor
+		gamma = tf.get_variable(self.name_+"gamma", shape[-1], initializer=tf.constant_initializer(1.0), trainable=True)
+		# beta: a trainable shift value
+		beta = tf.get_variable(self.name_+"beta", shape[-1], initializer=tf.constant_initializer(0.0), trainable=True)
+		moving_avg = tf.get_variable(self.name_+"moving_avg", shape[-1], initializer=tf.constant_initializer(0.0), trainable=True)
+		moving_var = tf.get_variable(self.name_+"moving_var", shape[-1], initializer=tf.constant_initializer(1.0), trainable=True)
+		if self.isTraining:
+			# tf.nn.moments == Calculate the mean and the variance of the tensor x
+			avg, var = tf.nn.moments(inputs_mean, range(len(shape)-1))
+			moving_avg.assign(avg)
+			moving_var.assign(var)
+			# update_moving_var = moving_averages.assign_moving_average(moving_var, var, decay)
+			# control_inputs = [update_moving_avg, update_moving_var]
+		else:
+			avg = moving_avg
+			var = moving_var
+			control_inputs = []
+		# with tf.control_dependencies(control_inputs):
+		output = tf.nn.batch_normalization(inputs_mean, avg, var, offset=beta, scale=gamma, variance_epsilon=self.eps)
 
-		# outputs_mean = batchNormLayer(inputs_mean, training= self.isTraining)
-		return outputs_mean
+		return output
+
+# def batch_norm(x, scope, is_training, epsilon=0.001, decay=0.99):
+#     """
+#     Returns a batch normalization layer that automatically switch between train and test phases based on the 
+#     tensor is_training
+
+#     Args:
+#         x: input tensor
+#         scope: scope name
+#         is_training: boolean tensor or variable
+#         epsilon: epsilon parameter - see batch_norm_layer
+#         decay: epsilon parameter - see batch_norm_layer
+
+#     Returns:
+#         The correct batch normalization layer based on the value of is_training
+#     """
+#     assert isinstance(is_training, (ops.Tensor, variables.Variable)) and is_training.dtype == tf.bool
+
+#     return tf.cond(
+#         is_training,
+#         lambda: batch_norm_layer(x=x, scope=scope, epsilon=epsilon, decay=decay, is_training=True, reuse=None),
+#         lambda: batch_norm_layer(x=x, scope=scope, epsilon=epsilon, decay=decay, is_training=False, reuse=True),
+#     )
+
+
+# def batch_norm_layer(x, scope, is_training, epsilon=0.001, decay=0.99, reuse=None):
+#     """
+#     Performs a batch normalization layer
+
+#     Args:
+#         x: input tensor
+#         scope: scope name
+#         is_training: python boolean value
+#         epsilon: the variance epsilon - a small float number to avoid dividing by 0
+#         decay: the moving average decay
+
+#     Returns:
+#         The ops of a batch normalization layer
+#     """
+#     with tf.variable_scope(scope, reuse=reuse):
+#         shape = x.get_shape().as_list()
+#         # gamma: a trainable scale factor
+#         gamma = tf.get_variable("gamma", shape[-1], initializer=tf.constant_initializer(1.0), trainable=True)
+#         # beta: a trainable shift value
+#         beta = tf.get_variable("beta", shape[-1], initializer=tf.constant_initializer(0.0), trainable=True)
+#         moving_avg = tf.get_variable("moving_avg", shape[-1], initializer=tf.constant_initializer(0.0), trainable=False)
+#         moving_var = tf.get_variable("moving_var", shape[-1], initializer=tf.constant_initializer(1.0), trainable=False)
+#         if is_training:
+#             # tf.nn.moments == Calculate the mean and the variance of the tensor x
+#             avg, var = tf.nn.moments(x, range(len(shape)-1))
+#             update_moving_avg = moving_averages.assign_moving_average(moving_avg, avg, decay)
+#             update_moving_var = moving_averages.assign_moving_average(moving_var, var, decay)
+#             control_inputs = [update_moving_avg, update_moving_var]
+#         else:
+#             avg = moving_avg
+#             var = moving_var
+#             control_inputs = []
+#         with tf.control_dependencies(control_inputs):
+#             output = tf.nn.batch_normalization(inputs_mean, avg, var, offset=beta, scale=gamma, variance_epsilon=self.eps)
+
+#     return output
