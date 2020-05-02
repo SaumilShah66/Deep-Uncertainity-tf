@@ -218,16 +218,17 @@ class BatchNorm2d(tf.keras.Model):
 		self.name_ = name_
 		self.dtype_ = dtype_
 		self.isTraining = training
-		self.decay = 0.5
+		self.decay = 0.99
 
 	def call(self, inputs_mean):
+		# with tf.variable_scope('BatchNorm_'+self.name_, reuse=True) as bnscope:
 		shape = inputs_mean.get_shape().as_list()
 		# gamma: a trainable scale factor
-		gamma = tf.get_variable(self.name_+"gamma", shape[-1], initializer=tf.constant_initializer(1.0), trainable=True)
+		gamma = tf.get_variable(self.name_+"_gamma", shape[-1], initializer=tf.constant_initializer(1.0), trainable=True)
 		# beta: a trainable shift value
-		beta = tf.get_variable(self.name_+"beta", shape[-1], initializer=tf.constant_initializer(0.0), trainable=True)
-		moving_avg = tf.get_variable(self.name_+"moving_avg", shape[-1], initializer=tf.constant_initializer(0.0), trainable=False)
-		moving_var = tf.get_variable(self.name_+"moving_var", shape[-1], initializer=tf.constant_initializer(1.0), trainable=False)
+		beta = tf.get_variable(self.name_+"_beta", shape[-1], initializer=tf.constant_initializer(0.0), trainable=True)
+		moving_avg = tf.get_variable(self.name_+"_moving_avg", shape[-1], initializer=tf.constant_initializer(0.0), trainable=False)
+		moving_var = tf.get_variable(self.name_+"_moving_var", shape[-1], initializer=tf.constant_initializer(1.0), trainable=False)
 		if self.isTraining:
 			# tf.nn.moments == Calculate the mean and the variance of the tensor x
 			avg, var = tf.nn.moments(inputs_mean, range(len(shape)-1))
@@ -240,5 +241,4 @@ class BatchNorm2d(tf.keras.Model):
 			control_inputs = []
 		with tf.control_dependencies(control_inputs):
 			output = tf.nn.batch_normalization(inputs_mean, avg, var, offset=beta, scale=gamma, variance_epsilon=self.eps)
-
 		return output

@@ -314,7 +314,7 @@ class Linear(tf.keras.Model):
 class BatchNorm2d(tf.keras.Model):
 	def __init__(self, eps=1e-5, momentum=0.1, affine=True,
 				 track_running_stats=True, keep_variance_fn=None, 
-				 name_= 'BatchNorm2d', dtype=tf.float32):
+				 name_= 'BatchNorm2d', dtype=tf.float32, training=False):
 		super(BatchNorm2d, self).__init__()
 		self._keep_variance_fn = keep_variance_fn
 		self.eps = 0
@@ -323,42 +323,39 @@ class BatchNorm2d(tf.keras.Model):
 		self.track_running_stats = track_running_stats
 		self.name_ = name_
 		self.dtype_ = dtype
-		
+		self.isTraining = training
+		self.decay = 0.99
+
 	def call(self, inputs_mean, inputs_variance):
-		# exponential_average_factor is self.momentum set to
-		# (when it is available) only so that if gets updated
-		# in ONNX graph when this node is exported to ONNX.
-		if self.track_running_stats:
-			self.num_batches_tracked = tf.Variable(0, dtype=self.dtype_)
-
-		if self.momentum is None:
-			exponential_average_factor = 0.0
-		else:
-			exponential_average_factor = self.momentum
-		if isTraining() and self.track_running_stats:
-			if self.num_batches_tracked is not None:
-				self.num_batches_tracked.assign_add(1)
-				if self.momentum is None:  # use cumulative moving average
-					exponential_average_factor = 1.0 / self.num_batches_tracked
-				else:  # use exponential moving average
-					exponential_average_factor = self.momentum
-
-		input_shape = inputs_mean.shape.as_list()
-		weights = tf.random_uniform(input_shape[-1:], minval=0.0, maxval=1.0)
+		shape = inputs_mean.get_shape().as_list()
+		# gamma: a trainable scale factor
+		gamma = tf.get_variable(self.name_+"_gamma", shape[-1], initializer=tf.constant_initializer(1.0), trainable=True)
 		
-		bias = tf.zeros(input_shape[-1], dtype=self.dtype_)
-
-		batchNormLayer = tf.keras.layers.BatchNormalization(momentum= exponential_average_factor, epsilon=self.eps,
-															moving_mean_initializer=tf.zeros_initializer(), moving_variance_initializer=tf.ones_initializer(),
-															center=False, scale=False, trainable=True,
-															adjustment= lambda input_shape: ( weights, bias))
-
-		outputs_mean = batchNormLayer(inputs_mean, training= (isTraining() or self.track_running_stats))
-		outputs_variance = inputs_variance
-		outputs_variance = outputs_variance * (weights**2)
-		if self._keep_variance_fn is not None:
-			outputs_variance = self._keep_variance_fn(outputs_variance)
+		# beta: a trainable shift value
+		beta = tf.get_variable(self.name_+"_beta", shape[-1], initializer=tf.constant_initializer(0.0), trainable=True)
+		moving_avg = tf.get_variable(self.name_+"_moving_avg", shape[-1], initializer=tf.constant_initializer(0.0), trainable=False)
+		moving_var = tf.get_variable(self.name_+"_moving_var", shape[-1], initializer=tf.constant_initializer(1.0), trainable=False)
+		
+		beta_var = tf.constant(np.zeros(shape[-1]), dtype = self.dtype_)
+		moving_avg_var = tf.constant(np.zeros(shape[-1]), dtype = self.dtype_)
+		moving_var_var = tf.constant(np.ones(shape[-1]), dtype = self.dtype_)
+		if self.isTraining:
+			# tf.nn.moments == Calculate the mean and the variance of the tensor x
+			avg, var = tf.nn.moments(inputs_mean, range(len(shape)-1))
+			update_moving_avg = moving_averages.assign_moving_average(moving_avg, avg, self.decay)
+			update_moving_var = moving_averages.assign_moving_average(moving_var, var, self.decay)
+			control_inputs = [update_moving_avg, update_moving_var]
+		else:
+			avg = moving_avg
+			var = moving_var
+			control_inputs = []
+		with tf.control_dependencies(control_inputs):
+			outputs_mean = tf.nn.batch_normalization(inputs_mean, avg, var, offset=beta, scale=gamma, variance_epsilon=self.eps)
+			# varGamma = tf.expand_dims(gamma,0)
+			outputs_variance = tf.nn.batch_normalization(inputs_variance, moving_avg_var,
+				moving_var_var, beta_var, scale=gamma**2, variance_epsilon=self.eps)
 		return outputs_mean, outputs_variance
+
 
 class Softmax(tf.keras.Model):
 	def __init__(self, axis=0, keep_variance_fn=None):
