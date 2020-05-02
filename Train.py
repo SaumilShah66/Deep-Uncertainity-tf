@@ -130,10 +130,10 @@ def TrainOperation(ImgPH, VarPH, LabelPH, DirNamesTrain, TrainLabels, NumTrainSa
 		TrainLoss = tf.reduce_mean(train_cross_entropy)
 		trainLossSummary = tf.summary.scalar("TrainingLossEveryIter", TrainLoss)
 
-	with tf.name_scope('ValidationLoss'):
-		Valid_cross_entropy = tf.nn.softmax_cross_entropy_with_logits(labels = LabelPH, logits = prLogits)
-		ValidLoss = tf.reduce_mean(Valid_cross_entropy)
-		validationLossSummary = tf.summary.scalar("ValidationLossEveryIter", ValidLoss)
+	# with tf.name_scope('ValidationLoss'):
+	# 	Valid_cross_entropy = tf.nn.softmax_cross_entropy_with_logits(labels = LabelPH, logits = prLogits)
+	# 	ValidLoss = tf.reduce_mean(Valid_cross_entropy)
+	# 	validationLossSummary = tf.summary.scalar("ValidationLossEveryIter", ValidLoss)
 
 	with tf.name_scope('TrainAccuracy'):
 		prSoftMaxDecodedT = tf.argmax(prSoftMax, axis=1)
@@ -141,11 +141,11 @@ def TrainOperation(ImgPH, VarPH, LabelPH, DirNamesTrain, TrainLabels, NumTrainSa
 		TrainAcc = tf.reduce_mean(tf.cast(tf.math.equal(prSoftMaxDecodedT, LabelDecodedT), dtype=tf.float32))
 		trainingAccuracySummary = tf.summary.scalar("TrainingAccuracy", TrainAcc)
 
-	with tf.name_scope('ValidAccuracy'):
-		prSoftMaxDecoded = tf.argmax(prSoftMax, axis=1)
-		LabelDecoded = tf.argmax(LabelPH, axis=1)
-		ValidAcc = tf.reduce_mean(tf.cast(tf.math.equal(prSoftMaxDecoded, LabelDecoded), dtype=tf.float32))
-		validationAccuracySummary = tf.summary.scalar("ValidationAccuracy", ValidAcc)
+	# with tf.name_scope('ValidAccuracy'):
+	# 	prSoftMaxDecoded = tf.argmax(prSoftMax, axis=1)
+	# 	LabelDecoded = tf.argmax(LabelPH, axis=1)
+	# 	ValidAcc = tf.reduce_mean(tf.cast(tf.math.equal(prSoftMaxDecoded, LabelDecoded), dtype=tf.float32))
+	# 	validationAccuracySummary = tf.summary.scalar("ValidationAccuracy", ValidAcc)
 	
 	with tf.name_scope('Adam'):
 		Optimizer = tf.train.AdamOptimizer(learning_rate = lr).minimize(TrainLoss)
@@ -181,26 +181,24 @@ def TrainOperation(ImgPH, VarPH, LabelPH, DirNamesTrain, TrainLabels, NumTrainSa
 			for PerEpochCounter in tqdm(range(NumIterationsPerEpoch)):
 				### Batch generation
 				I1Batch, VarBatch, LabelBatch = GenerateBatch(BasePath, DirNamesTrain, TrainLabels, ImageSize, MiniBatchSize)
-				tf.keras.backend.set_learning_phase(1)
 				FeedDict = {ImgPH: I1Batch, VarPH: VarBatch, LabelPH: LabelBatch}
 				_, LossThisBatch, TSummary, TAcc, deco, soft, lab = sess.run([Optimizer, TrainLoss, TrainingSummary, TrainAcc, prSoftMaxDecodedT, prSoftMax, LabelDecodedT], feed_dict=FeedDict)
-				print("For debug Training "+"----"*10)
-				print("Softmax --- ",soft)
-				print("Decoded -- ", deco)
-				print("Labels --- ",lab)
-				print("Accuracy -- ", TAcc)
-				# print("Train -- Training status --",isTraining())
-				print("----"*10)
+				# print("For debug Training "+"----"*10)
+				# print("Softmax --- ",soft)
+				# print("Decoded -- ", deco)
+				# print("Labels --- ",lab)
+				# print("Accuracy -- ", TAcc)
+				# print("----"*10)
 				temp_loss.append(LossThisBatch)
-				TotalLoss.append(LossThisBatch)
+				# TotalLoss.append(LossThisBatch)
 				temp_acc.append(TAcc)
-				TotalAcc.append(TAcc)
+				# TotalAcc.append(TAcc)
 				# Save checkpoint every some SaveCheckPoint's iterations
 				if PerEpochCounter % 10 == 0:
 					# Save the Model learnt in this epoch
-					# print("Accuracy of model : " + str(sum(temp_acc)/len(temp_acc)))
-					# print("Loss of model : "+str(sum(temp_loss)))
-					temp_loss, temp_acc = [], []
+					print("Accuracy of model : " + str(sum(temp_acc)/len(temp_acc)))
+					print("Loss of model : "+str(sum(temp_loss)))
+					# temp_loss, temp_acc = [], []
 
 				# Tensorboard
 				Writer.add_summary(TSummary, Epochs*NumIterationsPerEpoch + PerEpochCounter)
@@ -210,11 +208,11 @@ def TrainOperation(ImgPH, VarPH, LabelPH, DirNamesTrain, TrainLabels, NumTrainSa
 			# Save model every epoch
 			SaveName = CheckPointPath + str(Epochs) + 'model.ckpt'
 			Saver.save(sess, save_path=SaveName)
-			# print('\n' + SaveName + ' Model Saved... ')
-			# print("--"*10+"After Epoch"+"--"*10)
-			# print("Total Test Loss = "+str(sum(temp_loss)))
-			# print("Total Test Accuracy = "+str(sum(temp_acc)/len(temp_acc)))
-			# print("--"*20)
+			print('\n' + SaveName + ' Model Saved... ')
+			print("--"*10+"After Epoch"+"--"*10)
+			print("Total Test Loss = "+str(sum(temp_loss)))
+			print("Total Test Accuracy = "+str(sum(temp_acc)/len(temp_acc)))
+			print("--"*20)
 			temp_acc = []
 			temp_loss = []
 
@@ -230,12 +228,12 @@ def main():
 	Parser = argparse.ArgumentParser()
 	Parser.add_argument('--BasePath', default='../CIFAR10', help='Base path of images, Default:/media/nitin/Research/Homing/SpectralCompression/CIFAR10')
 	Parser.add_argument('--CheckPointPath', default='../Checkpoints/', help='Path to save Checkpoints, Default: ../Checkpoints/')
-	Parser.add_argument('--NumEpochs', type=int, default=10, help='Number of Epochs to Train for, Default:50')
+	Parser.add_argument('--NumEpochs', type=int, default=20, help='Number of Epochs to Train for, Default:50')
 	Parser.add_argument('--DivTrain', type=int, default=1, help='Factor to reduce Train data by per epoch, Default:1')
-	Parser.add_argument('--MiniBatchSize', type=int, default=5, help='Size of the MiniBatch to use, Default:1')
+	Parser.add_argument('--MiniBatchSize', type=int, default=128, help='Size of the MiniBatch to use, Default:1')
 	Parser.add_argument('--LoadCheckPoint', type=int, default=0, help='Load Model from latest Checkpoint from CheckPointsPath?, Default:0')
 	Parser.add_argument('--LogsPath', default='../Logs/', help='Path to save Logs for Tensorboard, Default=Logs/')
-	Parser.add_argument('--Lr', type=float, default=0.001, help='Learning rate')
+	Parser.add_argument('--Lr', type=float, default=0.01, help='Learning rate')
 	Args = Parser.parse_args()
 	NumEpochs = Args.NumEpochs
 	BasePath = Args.BasePath

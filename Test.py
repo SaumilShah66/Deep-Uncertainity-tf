@@ -56,8 +56,8 @@ def SetupAll(BasePath):
     # Image Input Shape
     ImageSize = [32, 32, 3]
     DataPath = []
-    # NumImages = len(glob.glob(BasePath+'*.png'))
-    NumImages = 10
+    NumImages = len(glob.glob(BasePath+'*.png'))
+    # NumImages = 10
     SkipFactor = 1
     for count in range(1,NumImages+1,SkipFactor):
         DataPath.append(BasePath + str(count) + '.png')
@@ -204,7 +204,7 @@ def main():
     Parser.add_argument('--ModelPath', dest='ModelPath', default='../Checkpoints/', help='Path to load latest model from, Default:ModelPath')
     Parser.add_argument('--BasePath', dest='BasePath', default='../CIFAR10/Train/', help='Path to load images from, Default:BasePath')
     Parser.add_argument('--LabelsPath', dest='LabelsPath', default='./TxtFiles/LabelsTrain.txt', help='Path of labels file, Default:./TxtFiles/LabelsTest.txt')
-    Parser.add_argument('--Epochs', dest='Epochs', default=9, help='Path of labels file, Default:./TxtFiles/LabelsTest.txt')
+    Parser.add_argument('--Epochs', dest='Epochs', default=19, help='Path of labels file, Default:./TxtFiles/LabelsTest.txt')
     Args = Parser.parse_args()
     ModelPath = Args.ModelPath
     BasePath = Args.BasePath
