@@ -47,7 +47,10 @@ def test(self, block, num_blocks, num_classes=10, noise_variance=1e-3, min_varia
 def isTraining():
 	training = tf.keras.backend.learning_phase()
 	sess2 = tf.Session()
-	return sess2.run(training)
+	status = sess2.run(training)
+	sess2.close()
+	print(status)
+	return status
 
 ############################################################
 #############################################################
@@ -159,13 +162,14 @@ class Dropout(tf.keras.Model):
 	def __init__(self, p = 0.5, inplace=False, training=True):
 		super(Dropout, self).__init__()
 		self.inplace = inplace
+		self.isTraining = training
 		if p < 0 or p > 1:
 			raise ValueError("dropout probability has to be between 0 and 1, " "but got {}".format(p))
 		self.p = p
 
 	def call(self, inputs_mean):
 		drop_layer = tf.keras.layers.SpatialDropout2D(data_format='channels_last', rate =self.p)
-		if isTraining():
+		if self.isTraining:
 			binary_mask = tf.ones_like(inputs_mean)
 			binary_mask = drop_layer(binary_mask, training = True)
 			outputs_mean = inputs_mean*binary_mask
@@ -204,39 +208,48 @@ class ConvTranspose2d(tf.keras.Model):
 class BatchNorm2d(tf.keras.Model):
 	def __init__(self, eps=1e-5, momentum=0.1, affine=True,
 				 track_running_stats=True, keep_variance_fn=None, 
-				 name_= 'BatchNorm2d', dtype_=tf.float32):
+				 name_= 'BatchNorm2d', dtype_=tf.float32, training=True):
 		super(BatchNorm2d, self).__init__()
 		self._keep_variance_fn = keep_variance_fn
-		self.eps = 0
+		self.eps = eps
 		self.momentum = momentum
 		self.affine = affine
 		self.track_running_stats = track_running_stats
 		self.name_ = name_
 		self.dtype_ = dtype_
-		
+		self.isTraining = training
+		# if self.track_running_stats:
+		# 	self.num_batches_tracked = tf.Variable(0, dtype=self.dtype_)
+
 	def call(self, inputs_mean):
-		if self.track_running_stats:
-			self.num_batches_tracked = tf.Variable(0, dtype=self.dtype_)
-		if self.momentum is None:
-			exponential_average_factor = 0.0
-		else:
-			exponential_average_factor = self.momentum
-		if isTraining() and self.track_running_stats:
-			if self.num_batches_tracked is not None:
-				self.num_batches_tracked.assign_add(1)
-				if self.momentum is None:  # use cumulative moving average
-					exponential_average_factor = 1.0 / self.num_batches_tracked
-				else:  # use exponential moving average
-					exponential_average_factor = self.momentum
+		# if self.momentum is None:
+		# 	exponential_average_factor = 0.0
+		# else:
+		# 	exponential_average_factor = self.momentum
+		# if self.isTraining and self.track_running_stats:
+		# 	if self.num_batches_tracked is not None:
+		# 		self.num_batches_tracked.assign_add(1)
+		# 		if self.momentum is None:  # use cumulative moving average
+		# 			exponential_average_factor = 1.0 / self.num_batches_tracked
+		# 		else:  # use exponential moving average
+		# 			exponential_average_factor = self.momentum
 
 		input_shape = inputs_mean.shape.as_list()
-		weights = tf.random_uniform(input_shape[-1:], minval=0.0, maxval=1.0)
-		bias = tf.zeros(input_shape[-1], dtype=self.dtype_)
 
-		batchNormLayer = tf.keras.layers.BatchNormalization(momentum= exponential_average_factor, epsilon=self.eps,
-															moving_mean_initializer=tf.zeros_initializer(), moving_variance_initializer=tf.ones_initializer(),
-															center=False, scale=False, trainable=True,
-															adjustment= lambda input_shape: ( weights, bias))
+		self.means = tf.get_variable(name=self.name_+"_mean",dtype=self.dtype_, 
+			shape=[input_shape[3]])
+		self.variances = tf.get_variable(name=self.name_+"_variance",dtype=self.dtype_, 
+			shape=[input_shape[3]])
+		# weights = tf.random_uniform(input_shape[-1:], minval=0.0, maxval=1.0)
+		self.offset = tf.Variable(np.zeros([input_shape[3]]), dtype=self.dtype_)
+		self.scale = tf.Variable(np.ones([input_shape[3]]), dtype=self.dtype_)
+		# batchNormLayer = tf.keras.layers.BatchNormalization(momentum= self.momentum, epsilon=self.eps,
+		# 													moving_mean_initializer=tf.zeros_initializer(), moving_variance_initializer=tf.ones_initializer(),
+		# 													center=False, scale=False, trainable=True)
+		# 													#adjustment= lambda input_shape: ( weights, bias))
+		
+		outputs_mean = tf.nn.batch_normalization(inputs_mean, self.means, self.variances, self.offset, self.scale, 
+			self.eps, name=self.name_+"_Batch")
 
-		outputs_mean = batchNormLayer(inputs_mean, training= (isTraining() or self.track_running_stats))
+		# outputs_mean = batchNormLayer(inputs_mean, training= self.isTraining)
 		return outputs_mean

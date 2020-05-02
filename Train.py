@@ -40,10 +40,10 @@ import string
 from termcolor import colored, cprint
 import math as m
 from tqdm import tqdm
-
+# from Network.Layers import isTraining
 # Don't generate pyc codes
 sys.dont_write_bytecode = True
-
+from tensorflow.keras import backend as K
 	
 def GenerateBatch(BasePath, DirNamesTrain, TrainLabels, ImageSize, MiniBatchSize):
 	"""
@@ -78,7 +78,8 @@ def GenerateBatch(BasePath, DirNamesTrain, TrainLabels, ImageSize, MiniBatchSize
 		Variances.append(np.zeros_like(I1)+0.001)
 		Label = convertToOneHot(TrainLabels[RandIdx], 10)
 		LabelBatch.append(Label)
-		
+		print("Randoms --- ", RandIdx, "--",TrainLabels[RandIdx])
+	print("Labels original ---",LabelBatch)
 	return I1Batch, Variances, LabelBatch
 
 
@@ -180,10 +181,16 @@ def TrainOperation(ImgPH, VarPH, LabelPH, DirNamesTrain, TrainLabels, NumTrainSa
 			for PerEpochCounter in tqdm(range(NumIterationsPerEpoch)):
 				### Batch generation
 				I1Batch, VarBatch, LabelBatch = GenerateBatch(BasePath, DirNamesTrain, TrainLabels, ImageSize, MiniBatchSize)
-				
+				tf.keras.backend.set_learning_phase(1)
 				FeedDict = {ImgPH: I1Batch, VarPH: VarBatch, LabelPH: LabelBatch}
-				_, LossThisBatch, TSummary, TAcc = sess.run([Optimizer, TrainLoss, TrainingSummary, TrainAcc], feed_dict=FeedDict)
-				
+				_, LossThisBatch, TSummary, TAcc, deco, soft, lab = sess.run([Optimizer, TrainLoss, TrainingSummary, TrainAcc, prSoftMaxDecodedT, prSoftMax, LabelDecodedT], feed_dict=FeedDict)
+				print("For debug Training "+"----"*10)
+				print("Softmax --- ",soft)
+				print("Decoded -- ", deco)
+				print("Labels --- ",lab)
+				print("Accuracy -- ", TAcc)
+				# print("Train -- Training status --",isTraining())
+				print("----"*10)
 				temp_loss.append(LossThisBatch)
 				TotalLoss.append(LossThisBatch)
 				temp_acc.append(TAcc)
@@ -191,8 +198,8 @@ def TrainOperation(ImgPH, VarPH, LabelPH, DirNamesTrain, TrainLabels, NumTrainSa
 				# Save checkpoint every some SaveCheckPoint's iterations
 				if PerEpochCounter % 10 == 0:
 					# Save the Model learnt in this epoch
-					print("Accuracy of model : " + str(sum(temp_acc)/len(temp_acc)))
-					print("Loss of model : "+str(sum(temp_loss)))
+					# print("Accuracy of model : " + str(sum(temp_acc)/len(temp_acc)))
+					# print("Loss of model : "+str(sum(temp_loss)))
 					temp_loss, temp_acc = [], []
 
 				# Tensorboard
@@ -200,29 +207,14 @@ def TrainOperation(ImgPH, VarPH, LabelPH, DirNamesTrain, TrainLabels, NumTrainSa
 				# If you don't flush the tensorboard doesn't update until a lot of iterations!
 				Writer.flush()
 
-			print("--"*10+"After Epoch"+"--"*10)
-			print("Total Training Loss = "+str(sum(TotalLoss)))
-			print("Total Training Accuracy = "+str(sum(TotalAcc)/len(TotalAcc)))
-			temp_loss, temp_acc, TotalAcc, TotalLoss = [], [], [], []
-
-			NumIterationsPerEpoch = int(NumValidSamples/MiniBatchSize)
-			for PerEpochCounter in tqdm(range(NumIterationsPerEpoch)):
-				I1Batch, VarBatch, LabelBatch = GenerateBatch(BasePath, DirNamesValid, ValidLabels, ImageSize, MiniBatchSize)
-				FeedDict = {ImgPH: I1Batch, VarPH: VarBatch, LabelPH: LabelBatch}
-				LossThisBatch, VSummary, VAcc = sess.run([ValidLoss, ValidationSummary, ValidAcc], feed_dict=FeedDict)
-				temp_loss.append(LossThisBatch)
-				temp_acc.append(VAcc)
-				Writer.add_summary(VSummary, Epochs*NumIterationsPerEpoch + PerEpochCounter)
-				Writer.flush()
-			
 			# Save model every epoch
 			SaveName = CheckPointPath + str(Epochs) + 'model.ckpt'
 			Saver.save(sess, save_path=SaveName)
-			print('\n' + SaveName + ' Model Saved... ')
-			print("--"*10+"After Epoch"+"--"*10)
-			print("Total Test Loss = "+str(sum(temp_loss)))
-			print("Total Test Accuracy = "+str(sum(temp_acc)/len(temp_acc)))
-			print("--"*20)
+			# print('\n' + SaveName + ' Model Saved... ')
+			# print("--"*10+"After Epoch"+"--"*10)
+			# print("Total Test Loss = "+str(sum(temp_loss)))
+			# print("Total Test Accuracy = "+str(sum(temp_acc)/len(temp_acc)))
+			# print("--"*20)
 			temp_acc = []
 			temp_loss = []
 
@@ -238,9 +230,9 @@ def main():
 	Parser = argparse.ArgumentParser()
 	Parser.add_argument('--BasePath', default='../CIFAR10', help='Base path of images, Default:/media/nitin/Research/Homing/SpectralCompression/CIFAR10')
 	Parser.add_argument('--CheckPointPath', default='../Checkpoints/', help='Path to save Checkpoints, Default: ../Checkpoints/')
-	Parser.add_argument('--NumEpochs', type=int, default=5, help='Number of Epochs to Train for, Default:50')
+	Parser.add_argument('--NumEpochs', type=int, default=10, help='Number of Epochs to Train for, Default:50')
 	Parser.add_argument('--DivTrain', type=int, default=1, help='Factor to reduce Train data by per epoch, Default:1')
-	Parser.add_argument('--MiniBatchSize', type=int, default=32, help='Size of the MiniBatch to use, Default:1')
+	Parser.add_argument('--MiniBatchSize', type=int, default=5, help='Size of the MiniBatch to use, Default:1')
 	Parser.add_argument('--LoadCheckPoint', type=int, default=0, help='Load Model from latest Checkpoint from CheckPointsPath?, Default:0')
 	Parser.add_argument('--LogsPath', default='../Logs/', help='Path to save Logs for Tensorboard, Default=Logs/')
 	Parser.add_argument('--Lr', type=float, default=0.001, help='Learning rate')

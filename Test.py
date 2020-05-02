@@ -56,7 +56,8 @@ def SetupAll(BasePath):
     # Image Input Shape
     ImageSize = [32, 32, 3]
     DataPath = []
-    NumImages = len(glob.glob(BasePath+'*.png'))
+    # NumImages = len(glob.glob(BasePath+'*.png'))
+    NumImages = 10
     SkipFactor = 1
     for count in range(1,NumImages+1,SkipFactor):
         DataPath.append(BasePath + str(count) + '.png')
@@ -106,7 +107,7 @@ def TestOperation(ImgPH, VarPH, ImageSize, ModelPath, DataPath, LabelsPathPred):
     Length = ImageSize[0]
     # Predict output with forward pass, MiniBatchSize for Test is 1
     # _, prSoftMaxS = CIFAR10Model(ImgPH, ImageSize, 1)
-    cifar = CIFARNormal()
+    cifar = CIFARNormal(training=False)
     prLogits, prSoftMaxS = cifar.network(ImgPH)
 
     # Setup Saver
@@ -123,7 +124,14 @@ def TestOperation(ImgPH, VarPH, ImageSize, ModelPath, DataPath, LabelsPathPred):
             DataPathNow = DataPath[count]
             Img, Var, ImgOrg = ReadImages(ImageSize, DataPathNow)
             FeedDict = {ImgPH: Img, VarPH: Var}
-            PredT = np.argmax(sess.run(prSoftMaxS, FeedDict))
+            Prediction, logits = sess.run([prSoftMaxS, prLogits], FeedDict)
+            print("----"*10)
+            print("Softmax values -- ",Prediction)
+            print("Logits ---",logits)
+            PredT = np.argmax(Prediction)
+            print(PredT)
+            print("---"*10)
+            # print("Training status -- ",isTraining())
             # print(str(count)+)
             OutSaveT.write(str(PredT)+'\n')
             
@@ -137,6 +145,8 @@ def Accuracy(Pred, GT):
     Outputs:
     Accuracy in percentage
     """
+    print("Predictions ---\n",Pred)
+    print("Actual ----\n",GT)
     return (np.sum(np.array(Pred)==np.array(GT))*100.0/len(Pred))
 
 def ReadLabels(LabelsPathTest, LabelsPathPred):
@@ -194,7 +204,7 @@ def main():
     Parser.add_argument('--ModelPath', dest='ModelPath', default='../Checkpoints/', help='Path to load latest model from, Default:ModelPath')
     Parser.add_argument('--BasePath', dest='BasePath', default='../CIFAR10/Train/', help='Path to load images from, Default:BasePath')
     Parser.add_argument('--LabelsPath', dest='LabelsPath', default='./TxtFiles/LabelsTrain.txt', help='Path of labels file, Default:./TxtFiles/LabelsTest.txt')
-    Parser.add_argument('--Epochs', dest='Epochs', default=198, help='Path of labels file, Default:./TxtFiles/LabelsTest.txt')
+    Parser.add_argument('--Epochs', dest='Epochs', default=9, help='Path of labels file, Default:./TxtFiles/LabelsTest.txt')
     Args = Parser.parse_args()
     ModelPath = Args.ModelPath
     BasePath = Args.BasePath
@@ -222,7 +232,8 @@ def main():
     VarPH = tf.placeholder(tf.float32, shape=(1, ImageSize[0], ImageSize[1], ImageSize[2]))
     TestOperation(ImgPH, VarPH, ImageSize, model_path, DataPath, LabelsPathPred)    
     LabelsTrue, LabelsPred = ReadLabels(LabelsPath, LabelsPathPred)
-    acc.append(ConfusionMatrix(LabelsTrue, LabelsPred))
+    print(Accuracy(LabelsPred,LabelsTrue))
+    # acc.append(ConfusionMatrix(LabelsTrue, LabelsPred))
         
     # plt.plot(acc)
     # print(acc)
@@ -235,9 +246,14 @@ def test():
     I1Combined = np.expand_dims(I1S, axis=0)
     ImageSize = [32, 32, 3]
     ImgPH = tf.placeholder('float', shape=(1, ImageSize[0], ImageSize[1], 3))
-    
+    LabelPH = tf.placeholder(tf.float32, shape=(1, 10)) 
     cifar = CIFARNormal()
     prLogits, prSoftMaxS = cifar.network(ImgPH)
+
+    with tf.name_scope('ValidAccuracy'):
+        prSoftMaxDecoded = tf.argmax(prSoftMax, axis=1)
+        LabelDecoded = tf.argmax(LabelPH, axis=1)
+        ValidAcc = tf.reduce_mean(tf.cast(tf.math.equal(prSoftMaxDecoded, LabelDecoded), dtype=tf.float32))
     
     model_path = "../Checkpoints/198model.ckpt"
     Saver = tf.train.Saver()
@@ -249,6 +265,6 @@ def test():
     print(PredT)
 
 if __name__ == '__main__':
-    # main()
-    test()
+    main()
+    # test()
  
