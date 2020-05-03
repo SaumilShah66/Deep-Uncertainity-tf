@@ -223,9 +223,9 @@ def main():
     LabelsTrue, LabelsPred = ReadLabels(LabelsPath, LabelsPathPred)
     acc.append(ConfusionMatrix(LabelsTrue, LabelsPred))
         
-    plt.plot(acc)
-    print(acc)
-    plt.show()
+    # plt.plot(acc)
+    # print(acc)
+    # plt.show()
     print(acc)
 
      

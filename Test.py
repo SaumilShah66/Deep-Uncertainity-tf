@@ -117,8 +117,8 @@ def TestOperation(ImgPH, VarPH, ImageSize, ModelPath, DataPath, LabelsPathPred):
     with tf.Session() as sess:
         Saver.restore(sess, ModelPath)
         print('Number of parameters in this model are %d ' % np.sum([np.prod(v.get_shape().as_list()) for v in tf.trainable_variables()]))
-        for i, var in enumerate(Saver._var_list):
-            print('Var {}: {}'.format(i, var))
+        # for i, var in enumerate(Saver._var_list):
+        #     print('Var {}: {}'.format(i, var))
         # break
         OutSaveT = open(LabelsPathPred, 'w')
 
