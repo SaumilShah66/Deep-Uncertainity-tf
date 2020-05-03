@@ -224,9 +224,9 @@ class BatchNorm2d(tf.keras.Model):
 		# with tf.variable_scope('BatchNorm_'+self.name_, reuse=True) as bnscope:
 		shape = inputs_mean.get_shape().as_list()
 		# gamma: a trainable scale factor
-		gamma = tf.get_variable(self.name_+"_gamma", shape[-1], initializer=tf.constant_initializer(1.0), trainable=True)
+		gamma = tf.get_variable(self.name_+"_gamma", shape[-1], initializer=tf.constant_initializer(1.0), trainable=self.isTraining)
 		# beta: a trainable shift value
-		beta = tf.get_variable(self.name_+"_beta", shape[-1], initializer=tf.constant_initializer(0.0), trainable=True)
+		beta = tf.get_variable(self.name_+"_beta", shape[-1], initializer=tf.constant_initializer(0.0), trainable=self.isTraining)
 		moving_avg = tf.get_variable(self.name_+"_moving_avg", shape[-1], initializer=tf.constant_initializer(0.0), trainable=False)
 		moving_var = tf.get_variable(self.name_+"_moving_var", shape[-1], initializer=tf.constant_initializer(1.0), trainable=False)
 		if self.isTraining:
