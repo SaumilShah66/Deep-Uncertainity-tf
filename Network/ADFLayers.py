@@ -341,6 +341,7 @@ class BatchNorm2d(tf.keras.Model):
 		beta_var = tf.constant(np.zeros(shape[-1]), dtype = self.dtype_)
 		moving_avg_var = tf.constant(np.zeros(shape[-1]), dtype = self.dtype_)
 		moving_var_var = tf.constant(np.ones(shape[-1]), dtype = self.dtype_)
+		control_inputs = []
 		if self.isTraining:
 			# tf.nn.moments == Calculate the mean and the variance of the tensor x
 			avg, var = tf.nn.moments(inputs_mean, range(len(shape)-1))
@@ -350,7 +351,6 @@ class BatchNorm2d(tf.keras.Model):
 		else:
 			avg = moving_avg
 			var = moving_var
-			control_inputs = []
 		with tf.control_dependencies(control_inputs):
 			outputs_mean = tf.nn.batch_normalization(inputs_mean, avg, var, offset=beta, scale=gamma, variance_epsilon=self.eps)
 			# varGamma = tf.expand_dims(gamma,0)
