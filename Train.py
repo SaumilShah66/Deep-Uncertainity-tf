@@ -123,7 +123,7 @@ def TrainOperation(ImgPH, VarPH, LabelPH, DirNamesTrain, TrainLabels, NumTrainSa
 	"""      
 	# Predict output with forward pass
 	# cifar = CIFAR_ADF()
-	cifar = CIFARNormal()
+	cifar = CIFARNormal(training=True)
 	prLogits, prSoftMax = cifar.network(ImgPH)
 	# prLogits, prSoftMax = cifar.network(ImgPH, VarPH)
 
