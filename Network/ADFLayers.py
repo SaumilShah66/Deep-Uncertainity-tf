@@ -373,7 +373,7 @@ class Softmax(tf.keras.Model):
 		Mean and variance of the log-normal distribution are computed following
 		https://en.wikipedia.org/wiki/Log-normal_distribution."""
 		
-		log_gaussian_mean = features_mean + 0.5 * features_variance
+		log_gaussian_mean = features_mean #+ 0.5 * features_variance
 		log_gaussian_variance = 2 * log_gaussian_mean
 
 		log_gaussian_mean = tf.exp(log_gaussian_mean)
