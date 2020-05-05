@@ -360,7 +360,7 @@ class BatchNorm2d(tf.keras.Model):
 
 
 class Softmax(tf.keras.Model):
-	def __init__(self, axis=0, keep_variance_fn=None):
+	def __init__(self, axis=-1, keep_variance_fn=None):
 		super(Softmax, self).__init__()
 		self.axis = axis
 		self._keep_variance_fn = keep_variance_fn
