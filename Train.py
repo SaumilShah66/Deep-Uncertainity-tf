@@ -18,8 +18,12 @@ University of Maryland, College Park
 # termcolor, do (pip install termcolor)
 
 import tensorflow as tf
-import cv2
 import sys
+try:
+	import cv2
+except:
+	sys.path.remove(sys.path[2])
+	import cv2
 import os
 import glob
 import Misc.ImageUtils as iu
@@ -37,7 +41,10 @@ import numpy as np
 import time
 import argparse
 import shutil
-from StringIO import StringIO
+try:
+	from StringIO import StringIO ## for Python 2
+except ImportError:
+	from io import StringIO ## for Python 3
 import string
 from termcolor import colored, cprint
 import math as m

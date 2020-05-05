@@ -18,9 +18,13 @@ University of Maryland, College Park
 # skimage, do (apt install python-skimage)
 
 import tensorflow as tf
-import cv2
-import os
 import sys
+try:
+    import cv2
+except:
+    sys.path.remove(sys.path[2])
+    import cv2
+import os
 import glob
 import Misc.ImageUtils as iu
 import random
@@ -35,7 +39,10 @@ import numpy as np
 import time
 import argparse
 import shutil
-from StringIO import StringIO
+try:
+    from StringIO import StringIO ## for Python 2
+except ImportError:
+    from io import StringIO ## for Python 3
 import string
 import math as m
 from sklearn.metrics import confusion_matrix
