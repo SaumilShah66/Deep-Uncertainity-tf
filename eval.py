@@ -106,7 +106,7 @@ def TestOperation(ImgPH, VarPH, ImageSize, ModelPath, DataPath, LabelsPathPred):
     # Predict output with forward pass, MiniBatchSize for Test is 1
     # _, prSoftMaxS = CIFAR10Model(ImgPH, ImageSize, 1)
     cifar = CIFAR_ADF()
-    prLogits, prSoftMaxS = cifar.network(ImgPH, VarPH)
+    prLogits, prSoftMaxS, Variances = cifar.network(ImgPH, VarPH)
 
     # Setup Saver
     Saver = tf.train.Saver()
@@ -122,8 +122,8 @@ def TestOperation(ImgPH, VarPH, ImageSize, ModelPath, DataPath, LabelsPathPred):
             DataPathNow = DataPath[count]
             Img, Var, ImgOrg = ReadImages(ImageSize, DataPathNow)
             FeedDict = {ImgPH: Img, VarPH: Var}
-            PredT = np.argmax(sess.run(prSoftMaxS, FeedDict))
-
+            PredT, var = np.argmax(sess.run([prSoftMaxS, Variances], FeedDict))
+            print("Presdiction is -- ",PredT, " With Variance -- ",var)
             OutSaveT.write(str(PredT)+'\n')
             
         OutSaveT.close()
