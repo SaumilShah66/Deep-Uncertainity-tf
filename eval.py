@@ -122,7 +122,9 @@ def TestOperation(ImgPH, VarPH, ImageSize, ModelPath, DataPath, LabelsPathPred):
             DataPathNow = DataPath[count]
             Img, Var, ImgOrg = ReadImages(ImageSize, DataPathNow)
             FeedDict = {ImgPH: Img, VarPH: Var}
-            PredT, var = np.argmax(sess.run([prSoftMaxS, Variances], FeedDict))
+            PredT, var = sess.run([prSoftMaxS, Variances], FeedDict)
+            PredT = np.argmax(PredT)
+            var = var[PredT]
             print("Presdiction is -- ",PredT, " With Variance -- ",var)
             OutSaveT.write(str(PredT)+'\n')
             
