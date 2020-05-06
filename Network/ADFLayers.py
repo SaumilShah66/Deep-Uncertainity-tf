@@ -107,15 +107,15 @@ class ReLU(tf.keras.Model):
 		self.dtype_ = dtype
 
 	def call(self, feature_mean, feature_variance):
-		# feature_stddev = tf.cast(tf.sqrt(feature_variance), self.dtype_)
-		# div = feature_mean / feature_stddev
-		# pdf = normpdf(div)
-		# cdf = normcdf(div)
-		# output_mean = feature_mean * cdf + feature_stddev * pdf
-		# output_variance = (feature_mean ** 2 + feature_variance) * cdf \
-		# 				   + feature_mean * feature_stddev * pdf - output_mean ** 2
-		output_mean = tf.nn.relu(feature_mean)
-		output_variance = tf.where(output_mean==0, tf.zeros_like(feature_variance), feature_variance)
+		feature_stddev = tf.cast(tf.sqrt(feature_variance), self.dtype_)
+		div = feature_mean / feature_stddev
+		pdf = normpdf(div)
+		cdf = normcdf(div)
+		output_mean = feature_mean * cdf + feature_stddev * pdf
+		output_variance = (feature_mean ** 2 + feature_variance) * cdf \
+						   + feature_mean * feature_stddev * pdf - output_mean ** 2
+		# output_mean = tf.nn.relu(feature_mean)
+		# output_variance = tf.where(output_mean==0, tf.zeros_like(feature_variance), feature_variance)
 		if self._keep_variance_fn is not None:
 			output_variance = self._keep_variance_fn(output_variance)
 		return output_mean, output_variance
@@ -126,7 +126,7 @@ class LeakyReLU(tf.keras.Model):
 		self._keep_variance_fn = keep_variance_fn
 		self._negative_slope = negative_slope
 		self.dtype = dtpe
-
+		
 	def call(self, features_mean, features_variance):
 		features_stddev = tf.cast(tf.sqrt(features_variance), self.dtype)
 		div = features_mean / features_stddev

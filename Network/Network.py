@@ -74,7 +74,7 @@ class CIFARNormal():
         self.pool = Layers.AvgPool2d()
         numFeatures = (32/(2**(self.number_of_pools)))**2
         self.lin1 = Layers.Linear(512*numFeatures, 10, name_="Linear1")
-        # self.drop = Layers.Dropout(p=0.2)
+        self.drop = Layers.Dropout(p=0.2)
         # self.lin2 = Layers.Linear(512, 10, name_="Linear2")
         self.soft = Layers.Softmax()
         
@@ -97,7 +97,7 @@ class CIFARNormal():
         # net = tf.layers.max_pooling2d(inputs = net, pool_size = 2, strides = 2)
         net = tf.layers.flatten(net)
         net = self.lin1(net)
-        # net = self.drop(net)
+        net = self.drop(net)
         # prLogits = self.lin2(net)
         prLogits = net
         # prSoftMax = self.soft(prLogits) 
