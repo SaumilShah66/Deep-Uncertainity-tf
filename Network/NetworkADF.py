@@ -108,7 +108,7 @@ class CIFAR_ADF():
         # net = tf.layers.max_pooling2d(inputs = net, pool_size = 2, strides = 2)
         net_mean, net_variance = tf.layers.flatten(net[0]), tf.layers.flatten(net[1])
         net = [net_mean, net_variance]
-        net = self.drop(net)
+        #net = self.drop(*net)
         net = self.lin1(*net)
         # prLogits = self.lin2(net)
         prLogits = net[0]

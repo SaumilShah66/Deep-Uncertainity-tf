@@ -131,7 +131,7 @@ def TestOperation(ImgPH, VarPH, ImageSize, ModelPath, DataPath, LabelsPathPred):
             FeedDict = {ImgPH: Img, VarPH: Var}
             PredT, var = sess.run([prSoftMaxS, Variances], FeedDict)
             PredT = np.argmax(PredT)
-            var = var.ravel()[PredT]
+            #var = var.ravel()[PredT]
             print("Presdiction is -- ",PredT, " With Variance -- ",var)
             OutSaveT.write(str(PredT)+'\n')
             break
@@ -230,12 +230,12 @@ def main():
     VarPH = tf.placeholder(tf.float32, shape=(1, ImageSize[0], ImageSize[1], ImageSize[2]))
     TestOperation(ImgPH, VarPH, ImageSize, model_path, DataPath, LabelsPathPred)    
     LabelsTrue, LabelsPred = ReadLabels(LabelsPath, LabelsPathPred)
-    acc.append(ConfusionMatrix(LabelsTrue, LabelsPred))
+    #acc.append(ConfusionMatrix(LabelsTrue, LabelsPred))
         
     # plt.plot(acc)
     # print(acc)
     # plt.show()
-    print(acc)
+    #print(acc)
 
      
 if __name__ == '__main__':
