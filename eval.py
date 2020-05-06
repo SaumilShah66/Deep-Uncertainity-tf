@@ -131,7 +131,7 @@ def TestOperation(ImgPH, VarPH, ImageSize, ModelPath, DataPath, LabelsPathPred):
             FeedDict = {ImgPH: Img, VarPH: Var}
             PredT, var = sess.run([prSoftMaxS, Variances], FeedDict)
             PredT = np.argmax(PredT)
-            # var = var[PredT]
+            var = var.ravel()[PredT]
             print("Presdiction is -- ",PredT, " With Variance -- ",var)
             OutSaveT.write(str(PredT)+'\n')
             break
