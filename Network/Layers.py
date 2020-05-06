@@ -168,11 +168,12 @@ class Dropout(tf.keras.Model):
 		self.p = p
 
 	def call(self, inputs_mean):
-		drop_layer = tf.keras.layers.SpatialDropout2D(data_format='channels_last', rate =self.p)
+		# drop_layer = tf.keras.layers.Dropout(data_format='channels_last', rate =self.p)
 		if self.isTraining:
-			binary_mask = tf.ones_like(inputs_mean)
-			binary_mask = drop_layer(binary_mask, training = True)
-			outputs_mean = inputs_mean*binary_mask
+			# binary_mask = tf.ones_like(inputs_mean)
+			# binary_mask = drop_layer(binary_mask, training = True)
+			# outputs_mean = inputs_mean*binary_mask
+			outputs_mean = tf.nn.dropout(inputs_mean, self.p)
 			return outputs_mean
 		else:
 			return inputs_mean

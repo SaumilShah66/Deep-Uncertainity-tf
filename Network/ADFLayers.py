@@ -126,7 +126,7 @@ class LeakyReLU(tf.keras.Model):
 		self._keep_variance_fn = keep_variance_fn
 		self._negative_slope = negative_slope
 		self.dtype = dtpe
-		
+
 	def call(self, features_mean, features_variance):
 		features_stddev = tf.cast(tf.sqrt(features_variance), self.dtype)
 		div = features_mean / features_stddev
@@ -152,17 +152,18 @@ class LeakyReLU(tf.keras.Model):
 
 
 class Dropout(tf.keras.Model):
-	def __init__(self, p = 0.5, keep_variance_fn=None, inplace=False):
+	def __init__(self, p = 0.5, keep_variance_fn=None, inplace=False, training=False):
 		super(Dropout, self).__init__()
 		self._keep_variance_fn = keep_variance_fn
 		self.inplace = inplace
+		self.isTraining = training
 		if p < 0 or p > 1:
 			raise ValueError("dropout probability has to be between 0 and 1, " "but got {}".format(p))
 		self.p = p
 
 	def call(self, inputs_mean, inputs_variance):
 		drop_layer = tf.keras.layers.SpatialDropout2D(data_format='channels_last', rate =self.p)
-		if isTraining():
+		if self.isTraining:
 			binary_mask = tf.ones_like(inputs_mean)
 			binary_mask = drop_layer(binary_mask, training = True)
 			outputs_mean = inputs_mean*binary_mask

@@ -83,7 +83,7 @@ class CIFAR_ADF():
         self.pool = ADF.AvgPool2d(keep_variance_fn = self.keep_variance_fn1)
         numFeatures = (32/(2**(self.number_of_pools)))**2
         self.lin1 = ADF.Linear(512*numFeatures, 10, name_="Linear1", keep_variance_fn = self.keep_variance_fn1)
-        self.drop = ADF.Dropout(p=0.2)
+        self.drop = ADF.Dropout(p=0.2, training=False)
         # self.lin2 = ADF.Linear(512, 10, name_="Linear2")
         self.soft = ADF.Softmax(keep_variance_fn = self.keep_variance_fn1)
         
