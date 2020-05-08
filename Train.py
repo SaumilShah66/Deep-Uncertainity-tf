@@ -136,7 +136,9 @@ def TrainOperation(ImgPH, VarPH, LabelPH, DirNamesTrain, TrainLabels, NumTrainSa
 
 	with tf.name_scope('TrainingLoss'):
 		train_cross_entropy = tf.nn.softmax_cross_entropy_with_logits(labels = LabelPH, logits = prLogits)
-		TrainLoss = tf.reduce_mean(train_cross_entropy)
+		reg_losses = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
+  		# reg_constant = 0.001
+		TrainLoss = tf.reduce_mean(train_cross_entropy) + tf.reduce_sum(reg_losses)
 		trainLossSummary = tf.summary.scalar("TrainingLossEveryIter", TrainLoss)
 
 	with tf.name_scope('TrainAccuracy'):
