@@ -134,7 +134,7 @@ def TestOperation(ImgPH, VarPH, ImageSize, ModelPath, DataPath, LabelsPathPred, 
             #var = var.ravel()[PredT]
             print("Presdiction is -- ",PredT, " With Variance -- ",var)
             OutSaveT.write(str(PredT)+'\n')
-            break
+            # break
         OutSaveT.close()
 
 def Accuracy(Pred, GT):
@@ -199,8 +199,8 @@ def main():
 
     # Parse Command Line arguments
     Parser = argparse.ArgumentParser()
-    Parser.add_argument('--ModelPath', dest='ModelPath', default='../Checkpoints/', help='Path to load latest model from, Default:ModelPath')
-    Parser.add_argument('--BasePath', dest='BasePath', default='../CIFAR10/Test/', help='Path to load images from, Default:BasePath')
+    Parser.add_argument('--ModelPath', dest='ModelPath', default='../Checkpoints/', help='Path to load latest model from, Default:../Checkpoints/')
+    Parser.add_argument('--BasePath', dest='BasePath', default='../CIFAR10/Test/', help='Path to load images from, Default:../CIFAR10/Test/')
     Parser.add_argument('--LabelsPath', dest='LabelsPath', default='./TxtFiles/LabelsTest.txt', help='Path of labels file, Default:./TxtFiles/LabelsTest.txt')
     Parser.add_argument('--Epochs', dest='Epochs', default=199, help='Path of labels file, Default:./TxtFiles/LabelsTest.txt')
     Parser.add_argument('--meth', type=int, default=0, help='image std method')
@@ -231,7 +231,7 @@ def main():
     VarPH = tf.placeholder(tf.float32, shape=(1, ImageSize[0], ImageSize[1], ImageSize[2]))
     TestOperation(ImgPH, VarPH, ImageSize, model_path, DataPath, LabelsPathPred, Args.meth)    
     LabelsTrue, LabelsPred = ReadLabels(LabelsPath, LabelsPathPred)
-    #acc.append(ConfusionMatrix(LabelsTrue, LabelsPred))
+    acc.append(ConfusionMatrix(LabelsTrue, LabelsPred))
         
     # plt.plot(acc)
     # print(acc)
