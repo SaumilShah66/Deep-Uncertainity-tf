@@ -116,4 +116,4 @@ class CIFAR_ADF():
         prLogits = net[0]
         prSoftMax = self.soft(*net) 
         # prSoftMax = tf.nn.softmax(logits = prLogits)
-        return prLogits, prSoftMax[0], net1[0], net1[1], self.conv1.weights_
+        return prLogits, prSoftMax[0], prSoftMax[1], net1[0], net1[1], self.conv1.weights_
