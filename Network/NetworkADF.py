@@ -92,8 +92,8 @@ class CIFAR_ADF():
         # var = tf.zeros_like(mean)+0.001
         # net = [mean, var]
         net = mean, var
-        net = self.relu(*self.bn(*self.conv1(*net)))
-        net = self.resBlock1(*net)
+        net1 = self.relu(*self.bn(*self.conv1(*net)))
+        net = self.resBlock1(*net1)
         net = self.resBlock2(*net)
         # net = self.pool1(*net)
         net = self.resBlock3(*net)
@@ -114,4 +114,4 @@ class CIFAR_ADF():
         prLogits = net[0]
         prSoftMax = self.soft(*net) 
         # prSoftMax = tf.nn.softmax(logits = prLogits)
-        return prLogits, prSoftMax[0], prSoftMax[1]
+        return prLogits, prSoftMax[0], net[0], net1[1]
