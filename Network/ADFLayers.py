@@ -107,15 +107,15 @@ class ReLU(tf.keras.Model):
 		self.dtype_ = dtype
 
 	def call(self, feature_mean, feature_variance):
-		#feature_stddev = tf.cast(tf.sqrt(feature_variance), self.dtype_)
-		#div = feature_mean / feature_stddev
-		#pdf = normpdf(div)
-		#cdf = normcdf(div)
-		#output_mean = feature_mean * cdf + feature_stddev * pdf
-		#output_variance = (feature_mean ** 2 + feature_variance) * cdf \
-		#				   + feature_mean * feature_stddev * pdf - output_mean ** 2
-		output_mean = tf.nn.relu(feature_mean)
-		output_variance = tf.where(output_mean==0, tf.zeros_like(feature_variance), feature_variance)
+		feature_stddev = tf.cast(tf.sqrt(feature_variance), self.dtype_)
+		div = feature_mean / feature_stddev
+		pdf = normpdf(div)
+		cdf = normcdf(div)
+		output_mean = feature_mean * cdf + feature_stddev * pdf
+		output_variance = (feature_mean ** 2 + feature_variance) * cdf \
+						   + feature_mean * feature_stddev * pdf - output_mean ** 2
+		# output_mean = tf.nn.relu(feature_mean)
+		# output_variance = tf.where(output_mean==0, tf.zeros_like(feature_variance), feature_variance)
 		if self._keep_variance_fn is not None:
 			output_variance = self._keep_variance_fn(output_variance)
 		return output_mean, output_variance
@@ -378,7 +378,7 @@ class Softmax(tf.keras.Model):
 		Mean and variance of the log-normal distribution are computed following
 		https://en.wikipedia.org/wiki/Log-normal_distribution."""
 		
-		log_gaussian_mean = features_mean #+ 0.5 * features_variance
+		log_gaussian_mean = features_mean + 0.5 * features_variance
 		log_gaussian_variance = 2 * log_gaussian_mean
 
 		log_gaussian_mean = tf.exp(log_gaussian_mean)
