@@ -92,8 +92,10 @@ class CIFAR_ADF():
         # var = tf.zeros_like(mean)+0.001
         # net = [mean, var]
         net = mean, var
-        net1 = self.relu(*self.bn(*self.conv1(*net)))
-        net = self.resBlock1(*net1)
+        net1 = self.conv1(*net)
+        net = self.bn(*net1)
+        net = self.relu(*net)
+        net = self.resBlock1(*net)
         net = self.resBlock2(*net)
         # net = self.pool1(*net)
         net = self.resBlock3(*net)
