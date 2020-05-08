@@ -85,7 +85,7 @@ class CIFAR_ADF():
         self.lin1 = ADF.Linear(512*numFeatures, 10, name_="Linear1", keep_variance_fn = self.keep_variance_fn1)
         self.drop = ADF.Dropout(p=0.2, training=False)
         # self.lin2 = ADF.Linear(512, 10, name_="Linear2")
-        self.soft = ADF.Softmax(keep_variance_fn = self.keep_variance_fn1)
+        self.soft = ADF.Softmax(keep_variance_fn = self.keep_variance_fn1, axis=-1)
         
 
     def network(self, mean, var):
