@@ -54,7 +54,7 @@ from tqdm import tqdm
 sys.dont_write_bytecode = True
 from tensorflow.keras import backend as K
 	
-def GenerateBatch(BasePath, DirNamesTrain, TrainLabels, ImageSize, MiniBatchSize):
+def GenerateBatch(BasePath, DirNamesTrain, TrainLabels, ImageSize, MiniBatchSize, method):
 	"""
 	Inputs: 
 	BasePath - Path to CIFAR10 folder without "/" at the end
@@ -81,7 +81,7 @@ def GenerateBatch(BasePath, DirNamesTrain, TrainLabels, ImageSize, MiniBatchSize
 		
 		img = np.float32(cv2.imread(RandImageName))
 
-		I1 = iu.StandardizeInputs(img)
+		I1 = iu.StandardizeInputs(img, method=method)
 		
 		I1Batch.append(I1)
 		Variances.append(np.zeros_like(I1)+0.001)
@@ -108,7 +108,7 @@ def PrettyPrint(NumEpochs, DivTrain, MiniBatchSize, NumTrainSamples, LatestFile)
 
 def TrainOperation(ImgPH, VarPH, LabelPH, DirNamesTrain, TrainLabels, NumTrainSamples, ImageSize,
 				   NumEpochs, MiniBatchSize, SaveCheckPoint, CheckPointPath,
-				   DivTrain, LatestFile, BasePath, LogsPath, lr, DirNamesValid, ValidLabels, NumValidSamples):
+				   DivTrain, LatestFile, BasePath, LogsPath, lr, DirNamesValid, ValidLabels, NumValidSamples, method):
 	"""
 	Inputs: 
 	ImgPH is the Input Image placeholder
@@ -181,7 +181,7 @@ def TrainOperation(ImgPH, VarPH, LabelPH, DirNamesTrain, TrainLabels, NumTrainSa
 			NumIterationsPerEpoch = int(NumTrainSamples/MiniBatchSize/DivTrain)
 			for PerEpochCounter in tqdm(range(NumIterationsPerEpoch)):
 				### Batch generation
-				I1Batch, VarBatch, LabelBatch = GenerateBatch(BasePath, DirNamesTrain, TrainLabels, ImageSize, MiniBatchSize)
+				I1Batch, VarBatch, LabelBatch = GenerateBatch(BasePath, DirNamesTrain, TrainLabels, ImageSize, MiniBatchSize, method)
 				FeedDict = {ImgPH: I1Batch, VarPH: VarBatch, LabelPH: LabelBatch}
 				_, LossThisBatch, TSummary, TAcc, deco, soft, lab = sess.run([Optimizer, TrainLoss, TrainingSummary, TrainAcc, prSoftMaxDecodedT, prSoftMax, LabelDecodedT], feed_dict=FeedDict)
 				# print("For debug Training "+"----"*10)
@@ -235,6 +235,7 @@ def main():
 	Parser.add_argument('--LoadCheckPoint', type=int, default=0, help='Load Model from latest Checkpoint from CheckPointsPath?, Default:0')
 	Parser.add_argument('--LogsPath', default='../Logs/', help='Path to save Logs for Tensorboard, Default=Logs/')
 	Parser.add_argument('--Lr', type=float, default=0.01, help='Learning rate')
+	Parser.add_argument('--meth', type=int, default=0, help='image std method')
 	Args = Parser.parse_args()
 	NumEpochs = Args.NumEpochs
 	BasePath = Args.BasePath
@@ -267,7 +268,7 @@ def main():
 	
 	TrainOperation(ImgPH, VarPH, LabelPH, DirNamesTrain, TrainLabels, NumTrainSamples, ImageSize,
 				   NumEpochs, MiniBatchSize, SaveCheckPoint, CheckPointPath,
-				   DivTrain, LatestFile, BasePath, LogsPath, lr, DirNamesValid, ValidLabels, NumValidSamples)
+				   DivTrain, LatestFile, BasePath, LogsPath, lr, DirNamesValid, ValidLabels, NumValidSamples, Args.meth)
 		
 	
 if __name__ == '__main__':

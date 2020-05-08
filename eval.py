@@ -68,7 +68,7 @@ def SetupAll(BasePath):
         DataPath.append(BasePath + str(count) + '.png')
     return ImageSize, DataPath
     
-def ReadImages(ImageSize, DataPath):
+def ReadImages(ImageSize, DataPath, method):
     """
     Inputs: 
     ImageSize - Size of the Image
@@ -91,14 +91,14 @@ def ReadImages(ImageSize, DataPath):
     # Add any standardization or cropping/resizing if used in Training here!
     ##########################################################################
 
-    I1S = iu.StandardizeInputs(np.float32(I1), randomFlip=False)
+    I1S = iu.StandardizeInputs(np.float32(I1), randomFlip=False, method)
 
     I1Combined = np.expand_dims(I1S, axis=0)
     Varience = np.zeros_like(I1Combined) + 0.001
     return I1Combined, Varience, I1
                 
 
-def TestOperation(ImgPH, VarPH, ImageSize, ModelPath, DataPath, LabelsPathPred):
+def TestOperation(ImgPH, VarPH, ImageSize, ModelPath, DataPath, LabelsPathPred, method):
     """
     Inputs: 
     ImgPH is the Input Image placeholder
@@ -127,7 +127,7 @@ def TestOperation(ImgPH, VarPH, ImageSize, ModelPath, DataPath, LabelsPathPred):
 
         for count in tqdm(range(np.size(DataPath))):            
             DataPathNow = DataPath[count]
-            Img, Var, ImgOrg = ReadImages(ImageSize, DataPathNow)
+            Img, Var, ImgOrg = ReadImages(ImageSize, DataPathNow, method)
             FeedDict = {ImgPH: Img, VarPH: Var}
             PredT, var = sess.run([prSoftMaxS, Variances], FeedDict)
             PredT = np.argmax(PredT)
@@ -203,6 +203,7 @@ def main():
     Parser.add_argument('--BasePath', dest='BasePath', default='../CIFAR10/Test/', help='Path to load images from, Default:BasePath')
     Parser.add_argument('--LabelsPath', dest='LabelsPath', default='./TxtFiles/LabelsTest.txt', help='Path of labels file, Default:./TxtFiles/LabelsTest.txt')
     Parser.add_argument('--Epochs', dest='Epochs', default=199, help='Path of labels file, Default:./TxtFiles/LabelsTest.txt')
+    Parser.add_argument('--meth', type=int, default=0, help='image std method')
     Args = Parser.parse_args()
     ModelPath = Args.ModelPath
     BasePath = Args.BasePath
@@ -228,7 +229,7 @@ def main():
     # Define PlaceHolder variables for Input and Predicted output
     ImgPH = tf.placeholder('float', shape=(1, ImageSize[0], ImageSize[1], 3))
     VarPH = tf.placeholder(tf.float32, shape=(1, ImageSize[0], ImageSize[1], ImageSize[2]))
-    TestOperation(ImgPH, VarPH, ImageSize, model_path, DataPath, LabelsPathPred)    
+    TestOperation(ImgPH, VarPH, ImageSize, model_path, DataPath, LabelsPathPred, Args.meth)    
     LabelsTrue, LabelsPred = ReadLabels(LabelsPath, LabelsPathPred)
     #acc.append(ConfusionMatrix(LabelsTrue, LabelsPred))
         
