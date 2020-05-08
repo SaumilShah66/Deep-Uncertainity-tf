@@ -91,7 +91,7 @@ def ReadImages(ImageSize, DataPath, method):
     # Add any standardization or cropping/resizing if used in Training here!
     ##########################################################################
 
-    I1S = iu.StandardizeInputs(np.float32(I1), randomFlip=False, method)
+    I1S = iu.StandardizeInputs(np.float32(I1), randomFlip=False, method=method)
 
     I1Combined = np.expand_dims(I1S, axis=0)
     Varience = np.zeros_like(I1Combined) + 0.001
