@@ -2,6 +2,14 @@
 
 Reference : https://github.com/uzh-rpg/deep_uncertainty_estimation
 
+## Download
+```
+$ git clone https://github.com/SaumilShah66/Deep-Uncertainity-tf.git
+```
+Download CIFAR10 dataset
+```
+$ git clone https://github.com/varunasthana92/CIFAR10.git
+```
 ## Authors
 - Saumil Shah
 - Varun Asthana
