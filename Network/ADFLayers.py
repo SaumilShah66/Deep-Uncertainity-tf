@@ -194,10 +194,10 @@ class Conv2d(tf.keras.Model):
 		# self.weights_ = tf.get_variable(name=self.name_+"_Weight", dtype = self.dtype_, shape=list(self.weight_shape))
 		self.weights_ = tf.get_variable(name=self.name_+"_Weight",
 			initializer=tf.contrib.layers.xavier_initializer(uniform=True, dtype=self.dtype_),
-			shape=list(self.weight_shape))
+			shape=list(self.weight_shape), trainable=True)
 		self.biasStatus = bias
 		if self.biasStatus:
-			self.biases = tf.Variable(np.zeros(out_channels), dtype = self.dtype_)		
+			self.biases = tf.Variable(np.zeros(out_channels), dtype = self.dtype_, trainable=True)		
 
 	def call(self, inputs_mean, inputs_variance):
 		## For mean
@@ -298,9 +298,9 @@ class Linear(tf.keras.Model):
 		self.dtype_ = dtype_
 		self.weights_ = tf.get_variable(name=self.name_+"_Weight", 
 			initializer=tf.contrib.layers.xavier_initializer(uniform=True, dtype=self.dtype_),
-			shape=[outShape, inShape])
+			shape=[outShape, inShape], trainable=True)
 		if self.biasStatus:
-			self.biases = tf.Variable(np.zeros(outShape), dtype=self.dtype_)
+			self.biases = tf.Variable(np.zeros(outShape), dtype=self.dtype_, trainable=True)
 
 	def call(self, inputs_mean, inputs_variance):
 		# self.out_features = out_features
@@ -336,10 +336,10 @@ class BatchNorm2d(tf.keras.Model):
 	def call(self, inputs_mean, inputs_variance):
 		shape = inputs_mean.get_shape().as_list()
 		# gamma: a trainable scale factor
-		gamma = tf.get_variable(self.name_+"_gamma", shape[-1], initializer=tf.constant_initializer(1.0), trainable=True)
+		self.gamma = tf.get_variable(self.name_+"_gamma", shape[-1], initializer=tf.constant_initializer(1.0), trainable=True)
 		
 		# beta: a trainable shift value
-		beta = tf.get_variable(self.name_+"_beta", shape[-1], initializer=tf.constant_initializer(0.0), trainable=True)
+		self.beta = tf.get_variable(self.name_+"_beta", shape[-1], initializer=tf.constant_initializer(0.0), trainable=True)
 		moving_avg = tf.get_variable(self.name_+"_moving_avg", shape[-1], initializer=tf.constant_initializer(0.0), trainable=False)
 		moving_var = tf.get_variable(self.name_+"_moving_var", shape[-1], initializer=tf.constant_initializer(1.0), trainable=False)
 		
@@ -357,10 +357,10 @@ class BatchNorm2d(tf.keras.Model):
 			avg = moving_avg
 			var = moving_var
 		with tf.control_dependencies(control_inputs):
-			outputs_mean = tf.nn.batch_normalization(inputs_mean, avg, var, offset=beta, scale=gamma, variance_epsilon=self.eps)
+			outputs_mean = tf.nn.batch_normalization(inputs_mean, avg, var, offset=self.beta, scale=self.gamma, variance_epsilon=self.eps)
 			# varGamma = tf.expand_dims(gamma,0)
 			outputs_variance = tf.nn.batch_normalization(inputs_variance, moving_avg_var,
-				moving_var_var, beta_var, scale=gamma**2, variance_epsilon=self.eps)
+				moving_var_var, beta_var, scale=self.gamma**2, variance_epsilon=self.eps)
 		return outputs_mean, outputs_variance
 
 
