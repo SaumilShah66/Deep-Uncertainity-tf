@@ -134,7 +134,7 @@ def TestOperation(ImgPH, VarPH, ImageSize, ModelPath, DataPath, LabelsPathPred, 
             #var = var.ravel()[PredT]
             print("Presdiction is -- ",PredT, " With Variance -- ",var)
             OutSaveT.write(str(PredT)+'\n')
-            # break
+            break
         OutSaveT.close()
 
 def Accuracy(Pred, GT):
@@ -231,7 +231,7 @@ def main():
     VarPH = tf.placeholder(tf.float32, shape=(1, ImageSize[0], ImageSize[1], ImageSize[2]))
     TestOperation(ImgPH, VarPH, ImageSize, model_path, DataPath, LabelsPathPred, Args.meth)    
     LabelsTrue, LabelsPred = ReadLabels(LabelsPath, LabelsPathPred)
-    acc.append(ConfusionMatrix(LabelsTrue, LabelsPred))
+    # acc.append(ConfusionMatrix(LabelsTrue, LabelsPred))
         
     # plt.plot(acc)
     # print(acc)
