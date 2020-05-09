@@ -31,6 +31,14 @@ def resize2D(inputs, size_targets, mode="bilinear"):
 		resized = upLayer(inputs= inputs)
 	return resized
 
+def kaiming_normal(shape):
+    if len(shape) == 2:
+        fan_in, fan_out = shape[0], shape[1]
+    elif len(shape) == 4:
+        fan_in, fan_out = np.prod(shape[:3]), shape[3]
+    return tf.random_normal(shape) * np.sqrt(2.0 / fan_in)
+
+
 #######################
 ## end interpolation.py
 #######################
@@ -91,9 +99,11 @@ class Conv2d(tf.keras.Model):
 		self.weight_shape = [self.kernel_size, self.kernel_size, in_channels, out_channels]
 		self.dtype_ = dtype_
 		# self.weights_ = tf.get_variable(name=self.name_+"_Weight", dtype = self.dtype_, shape=list(self.weight_shape))
-		self.weights_ = tf.get_variable(name=self.name_+"_Weight", 
-			initializer=tf.contrib.layers.xavier_initializer(uniform=True, dtype=self.dtype_), 
-			shape=list(self.weight_shape), trainable=True)
+		# self.weights_ = tf.get_variable(name=self.name_+"_Weight", 
+		# 	initializer=tf.contrib.layers.xavier_initializer(uniform=True, dtype=self.dtype_), 
+		# 	shape=list(self.weight_shape), trainable=True)
+		
+		self.weights_ = tf.Variable(kaiming_normal(self.weight_shape), name=self.name_+"_Weight", trainable=True)
 		if self.biasStatus:
 			self.biases = tf.Variable(np.zeros(out_channels), dtype = self.dtype_, trainable=True)		
 
@@ -115,9 +125,12 @@ class Linear(tf.keras.Model):
 		self.dtype_ = dtype_
 		# self.weights_ = tf.get_variable(name=self.name_+"_Weight",dtype=self.dtype_, 
 		# 	shape=[outShape, inShape])
-		self.weights_ = tf.get_variable(name=self.name_+"_Weight", 
-			initializer=tf.contrib.layers.xavier_initializer(uniform=True, dtype=self.dtype_), 
-			shape=[outShape, inShape], trainable=True)
+
+		# self.weights_ = tf.get_variable(name=self.name_+"_Weight", 
+		# 	initializer=tf.contrib.layers.xavier_initializer(uniform=True, dtype=self.dtype_), 
+		# 	shape=[outShape, inShape], trainable=True)
+		self.weights_ = tf.Variable(kaiming_normal([outShape, inShape]), name=self.name_+"_Weight", trainable=True)
+
 		if self.biasStatus:
 			self.biases = tf.Variable(np.zeros(outShape), dtype=self.dtype_, trainable=True)
 
