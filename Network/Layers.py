@@ -105,7 +105,7 @@ class Conv2d(tf.keras.Model):
 		
 		# self.weights_ = tf.Variable(kaiming_normal(self.weight_shape), name=self.name_+"_Weight", trainable=True)
 		if self.biasStatus:
-			self.biases = tf.Variable(np.zeros(out_channels), dtype = self.dtype_, trainable=True)		
+			self.biases = tf.Variable(np.zeros(out_channels), dtype = self.dtype_)
 
 	def call(self, inputs_mean):
 		## For mean
@@ -132,7 +132,7 @@ class Linear(tf.keras.Model):
 		# self.weights_ = tf.Variable(kaiming_normal([outShape, inShape]), name=self.name_+"_Weight", trainable=True)
 
 		if self.biasStatus:
-			self.biases = tf.Variable(np.zeros(outShape), dtype=self.dtype_, trainable=True)
+			self.biases = tf.Variable(np.zeros(outShape), dtype=self.dtype_)
 
 	def call(self, inputs_mean):
 		input_shape = inputs_mean.shape.as_list()
@@ -212,8 +212,8 @@ class ConvTranspose2d(tf.keras.Model):
 		self.out_channels = out_channels
 		self.weight_shape = [self.kernel_size, self.kernel_size, out_channels, in_channels]
 		self.dtype_ = dtype_
-		self.weights_ = tf.get_variable(name=self.name_+"_Weight", dtype=self.dtype_, shape=list(self.weight_shape), trainable=True)
-		self.biases = tf.Variable(np.zeros(out_channels), dtype=self.dtype_, trainable=True)
+		self.weights_ = tf.get_variable(name=self.name_+"_Weight", dtype=self.dtype_, shape=list(self.weight_shape))
+		self.biases = tf.Variable(np.zeros(out_channels), dtype=self.dtype_)
 
 	def call(self, inputs_mean, output_size=None):
 		input_shape = inputs_mean.shape.as_list()
