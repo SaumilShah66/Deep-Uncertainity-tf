@@ -132,12 +132,13 @@ def TestOperation(ImgPH, VarPH, ImageSize, ModelPath, DataPath, LabelsPathPred, 
             PredT, fvar, mn, var , whts = sess.run([prSoftMaxS, finalVar, Means, Variances, wghts], FeedDict)
             PredT = np.argmax(PredT)
             #var = var.ravel()[PredT]
-            print("Presdiction is -- ",PredT, " With mean -- ",mn)
-            print("With Variance -- ",var)
-            print("With Weights -- ", whts)
-            print("With final Variance -- ", fvar)
+            #print("Presdiction is -- ",PredT)
+	        #print(" With mean -- ",mn)
+            # print("With Variance -- ",var)
+            #print("With Weights -- ", whts)
+            #print("With final Variance -- ", fvar)
             OutSaveT.write(str(PredT)+'\n')
-            break
+            #break
         OutSaveT.close()
 
 def Accuracy(Pred, GT):
@@ -234,7 +235,7 @@ def main():
     VarPH = tf.placeholder(tf.float32, shape=(1, ImageSize[0], ImageSize[1], ImageSize[2]))
     TestOperation(ImgPH, VarPH, ImageSize, model_path, DataPath, LabelsPathPred, Args.meth)    
     LabelsTrue, LabelsPred = ReadLabels(LabelsPath, LabelsPathPred)
-    # acc.append(ConfusionMatrix(LabelsTrue, LabelsPred))
+    acc.append(ConfusionMatrix(LabelsTrue, LabelsPred))
         
     # plt.plot(acc)
     # print(acc)

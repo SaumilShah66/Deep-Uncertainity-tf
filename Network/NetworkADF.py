@@ -92,8 +92,8 @@ class CIFAR_ADF():
         # var = tf.zeros_like(mean)+0.001
         # net = [mean, var]
         net = mean, var
-        net1 = self.conv1(*net)
-        net = self.bn(*net1)
+        net = self.conv1(*net)
+        net = self.bn(*net)
         net = self.relu(*net)
         net = self.resBlock1(*net)
         net = self.resBlock2(*net)
@@ -111,9 +111,9 @@ class CIFAR_ADF():
         net_mean, net_variance = tf.layers.flatten(net[0]), tf.layers.flatten(net[1])
         net = [net_mean, net_variance]
         #net = self.drop(*net)
-        net = self.lin1(*net)
+        net1 = self.lin1(*net)
         # prLogits = self.lin2(net)
-        prLogits = net[0]
-        prSoftMax = self.soft(*net) 
+        prLogits = net1[0]
+        prSoftMax = self.soft(*net1) 
         # prSoftMax = tf.nn.softmax(logits = prLogits)
         return prLogits, prSoftMax[0], prSoftMax[1], net1[0], net1[1], self.conv1.weights_

@@ -4,6 +4,7 @@ from numbers import Number
 from maths import normpdf, normcdf
 # from tensorflow.python.keras import backend as K
 from tensorflow.python.training import moving_averages
+from tensorflow.python.keras.layers.convolutional import Conv
 #########################
 ## start interpolation.py
 #########################
@@ -37,8 +38,6 @@ def kaiming_normal(shape):
     elif len(shape) == 4:
         fan_in, fan_out = np.prod(shape[:3]), shape[3]
     return tf.random_normal(shape) * np.sqrt(2.0 / fan_in)
-
-
 #######################
 ## end interpolation.py
 #######################
@@ -91,7 +90,9 @@ class Conv2d(tf.keras.Model):
 		super(Conv2d, self).__init__()
 		self._keep_variance_fn = keep_variance_fn
 		self.kernel_size = kernel_size
+		self.out_channels_ = out_channels
 		self.stride = [1,stride, stride,1]
+		self.strides = stride
 		self.padding = padding
 		self.dilation = dilation
 		self.name_ = name_
@@ -99,18 +100,19 @@ class Conv2d(tf.keras.Model):
 		self.weight_shape = [self.kernel_size, self.kernel_size, in_channels, out_channels]
 		self.dtype_ = dtype_
 		self.weights_ = tf.get_variable(name=self.name_+"_Weight", dtype = self.dtype_, shape=list(self.weight_shape))
-		# self.weights_ = tf.get_variable(name=self.name_+"_Weight", 
-		# 	initializer=tf.contrib.layers.xavier_initializer(uniform=True, dtype=self.dtype_), 
-		# 	shape=list(self.weight_shape), trainable=True)
-		
-		# self.weights_ = tf.Variable(kaiming_normal(self.weight_shape), name=self.name_+"_Weight", trainable=True)
 		if self.biasStatus:
-			self.biases = tf.Variable(np.zeros(out_channels), dtype = self.dtype_)
+			self.biases = tf.Variable(np.zeros(out_channels), dtype = self.dtype_)		
 
 	def call(self, inputs_mean):
 		## For mean
-		outputs_mean = tf.nn.conv2d(input= inputs_mean, filter = self.weights_, strides= self.stride,
-		 padding= self.padding, name = self.name_)
+		# outputs_mean = tf.nn.conv2d(input= inputs_mean, filter = self.weights_, strides= self.stride,
+		#  padding= self.padding, name = self.name_)
+		input_shape = inputs_mean.shape.as_list()
+		convLayer = Conv(rank=2, filters=self.out_channels_, input_shape=input_shape[1:4], kernel_size=self.kernel_size, 
+			strides=self.strides, padding='same', use_bias=False, kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=True, dtype=self.dtype_),
+			kernel_constraint=tf.keras.constraints.max_norm(1, [0, 1, 2]), name= self.name_)
+
+		outputs_mean = convLayer(inputs_mean)
 		if self.biasStatus:
 			outputs_mean = tf.nn.bias_add(outputs_mean, self.biases)
 		return outputs_mean
@@ -125,12 +127,6 @@ class Linear(tf.keras.Model):
 		self.dtype_ = dtype_
 		self.weights_ = tf.get_variable(name=self.name_+"_Weight",dtype=self.dtype_, 
 			shape=[outShape, inShape])
-
-		# self.weights_ = tf.get_variable(name=self.name_+"_Weight", 
-		# 	initializer=tf.contrib.layers.xavier_initializer(uniform=True, dtype=self.dtype_), 
-		# 	shape=[outShape, inShape], trainable=True)
-		# self.weights_ = tf.Variable(kaiming_normal([outShape, inShape]), name=self.name_+"_Weight", trainable=True)
-
 		if self.biasStatus:
 			self.biases = tf.Variable(np.zeros(outShape), dtype=self.dtype_)
 
@@ -187,7 +183,7 @@ class Dropout(tf.keras.Model):
 		self.p = p
 
 	def call(self, inputs_mean):
-		# drop_layer = tf.keras.layers.Dropout(data_format='channels_last', rate =self.p)
+		drop_layer = tf.keras.layers.SpatialDropout2D(data_format='channels_last', rate =self.p)
 		if self.isTraining:
 			# binary_mask = tf.ones_like(inputs_mean)
 			# binary_mask = drop_layer(binary_mask, training = True)
@@ -200,7 +196,7 @@ class Dropout(tf.keras.Model):
 class ConvTranspose2d(tf.keras.Model):
 	def __init__(self, in_channels, out_channels, kernel_size, stride=1,
 				 padding='SAME', output_padding=0, groups=1, bias=True, dilation=1,
-				 keep_variance_fn=None, name_='convTrans', output_size=None, dtype_=tf.float32):
+				 keep_variance_fn=None, name_='convTrans', output_size=None, dtype=tf.float32):
 		super(ConvTranspose2d, self).__init__()
 		self._keep_variance_fn = keep_variance_fn
 		self.kernel_size = kernel_size
@@ -211,9 +207,9 @@ class ConvTranspose2d(tf.keras.Model):
 		self.name_ = name_
 		self.out_channels = out_channels
 		self.weight_shape = [self.kernel_size, self.kernel_size, out_channels, in_channels]
-		self.dtype_ = dtype_
-		self.weights_ = tf.get_variable(name=self.name_+"_Weight", dtype=self.dtype_, shape=list(self.weight_shape))
-		self.biases = tf.Variable(np.zeros(out_channels), dtype=self.dtype_)
+		self.dtype = dtype
+		self.weights_ = tf.get_variable(name=self.name_+"_Weight", dtype=self.dtype, shape=list(self.weight_shape))
+		self.biases = tf.Variable(np.zeros(out_channels), dtype=self.dtype)
 
 	def call(self, inputs_mean, output_size=None):
 		input_shape = inputs_mean.shape.as_list()

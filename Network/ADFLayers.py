@@ -3,7 +3,7 @@ import numpy as np
 from numbers import Number
 from maths import normpdf, normcdf
 # from tensorflow.python.keras import backend as K
-
+from tensorflow.python.keras.layers.convolutional import Conv
 #########################
 ## start interpolation.py
 #########################
@@ -37,7 +37,6 @@ def kaiming_normal(shape):
     elif len(shape) == 4:
         fan_in, fan_out = np.prod(shape[:3]), shape[3]
     return tf.random_normal(shape) * np.sqrt(2.0 / fan_in)
-
 #######################
 ## end interpolation.py
 #######################
@@ -192,32 +191,40 @@ class Conv2d(tf.keras.Model):
 		super(Conv2d, self).__init__()
 		self._keep_variance_fn = keep_variance_fn
 		self.kernel_size = kernel_size
+		self.out_channels_ = out_channels
 		self.stride = [1,stride, stride,1]
+		self.strides = stride
 		self.padding = padding
 		self.dilation = dilation
 		self.name_ = name_
 		self.weight_shape = [self.kernel_size, self.kernel_size, in_channels, out_channels]
 		self.dtype_ = dtype_
-		# self.weights_ = tf.get_variable(name=self.name_+"_Weight", dtype = self.dtype_, shape=list(self.weight_shape))
-		
+		self.weights_ = tf.get_variable(name=self.name_+"_Weight", dtype = self.dtype_, shape=list(self.weight_shape))
+		self.biasStatus = bias
+		if self.biasStatus:
+			self.biases = tf.Variable(np.zeros(out_channels), dtype = self.dtype_)		
+
 		# self.weights_ = tf.get_variable(name=self.name_+"_Weight",
 		# 	initializer=tf.contrib.layers.xavier_initializer(uniform=True, dtype=self.dtype_),
 		# 	shape=list(self.weight_shape), trainable=True)
-
-		self.weights_ = tf.Variable(kaiming_normal(self.weight_shape), name=self.name_+"_Weight", trainable=True)
-
-		self.biasStatus = bias
-		if self.biasStatus:
-			self.biases = tf.Variable(np.zeros(out_channels), dtype = self.dtype_, trainable=True)		
+		# self.weights_ = tf.Variable(kaiming_normal(self.weight_shape), name=self.name_+"_Weight", trainable=True)
 
 	def call(self, inputs_mean, inputs_variance):
 		## For mean
-		outputs_mean = tf.nn.conv2d(input= inputs_mean, filter = self.weights_, strides= self.stride,
-		 padding= self.padding, name = self.name_)
+		# outputs_mean = tf.nn.conv2d(input= inputs_mean, filter = self.weights_, strides= self.stride,
+		#  padding= self.padding, name = self.name_)
+		input_shape = inputs_mean.shape.as_list()
+		convLayer = Conv(rank=2, filters=self.out_channels_, input_shape=input_shape[1:4], kernel_size=self.kernel_size, 
+			strides=self.strides, padding='same', use_bias=False, kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=True, dtype=self.dtype_),
+			kernel_constraint=tf.keras.constraints.max_norm(1, [0, 1, 2]), name= self.name_)
+
+		outputs_mean = convLayer(inputs_mean)
+
+
 		if self.biasStatus:
 			outputs_mean = tf.nn.bias_add(outputs_mean, self.biases)
 		## For variance
-		outputs_variance = tf.nn.conv2d(input= inputs_variance, filter = self.weights_**2, strides= self.stride,
+		outputs_variance = tf.nn.conv2d(input= inputs_variance, filter = convLayer.kernel**2, strides= self.stride,
 		 padding= self.padding, name = self.name_)
 		
 		if self._keep_variance_fn is not None:
@@ -307,13 +314,16 @@ class Linear(tf.keras.Model):
 		self.biasStatus = bias
 		self.name_ = name_
 		self.dtype_ = dtype_
+		self.weights_ = tf.get_variable(name=self.name_+"_Weight",dtype=self.dtype_, 
+			shape=[outShape, inShape])
+
 		# self.weights_ = tf.get_variable(name=self.name_+"_Weight", 
 		# 	initializer=tf.contrib.layers.xavier_initializer(uniform=True, dtype=self.dtype_),
 		# 	shape=[outShape, inShape], trainable=True)
 
-		self.weights_ = tf.Variable(kaiming_normal([outShape, inShape]), name=self.name_+"_Weight", trainable=True)
+		# self.weights_ = tf.Variable(kaiming_normal([outShape, inShape]), name=self.name_+"_Weight", trainable=True)
 		if self.biasStatus:
-			self.biases = tf.Variable(np.zeros(outShape), dtype=self.dtype_, trainable=True)
+			self.biases = tf.Variable(np.zeros(outShape), dtype=self.dtype_)
 
 	def call(self, inputs_mean, inputs_variance):
 		# self.out_features = out_features
@@ -334,25 +344,25 @@ class Linear(tf.keras.Model):
 class BatchNorm2d(tf.keras.Model):
 	def __init__(self, eps=1e-5, momentum=0.1, affine=True,
 				 track_running_stats=True, keep_variance_fn=None, 
-				 name_= 'BatchNorm2d', dtype=tf.float32, training=False):
+				 name_= 'BatchNorm2d', dtype_=tf.float32, training=False):
 		super(BatchNorm2d, self).__init__()
 		self._keep_variance_fn = keep_variance_fn
-		self.eps = 0
+		self.eps = eps
 		self.momentum = momentum
 		self.affine = affine
 		self.track_running_stats = track_running_stats
 		self.name_ = name_
-		self.dtype_ = dtype
+		self.dtype_ = dtype_
 		self.isTraining = training
 		self.decay = 0.99
 
 	def call(self, inputs_mean, inputs_variance):
 		shape = inputs_mean.get_shape().as_list()
 		# gamma: a trainable scale factor
-		self.gamma = tf.get_variable(self.name_+"_gamma", shape[-1], initializer=tf.constant_initializer(1.0), trainable=True)
+		gamma = tf.get_variable(self.name_+"_gamma", shape[-1], initializer=tf.constant_initializer(1.0), trainable=True)
 		
 		# beta: a trainable shift value
-		self.beta = tf.get_variable(self.name_+"_beta", shape[-1], initializer=tf.constant_initializer(0.0), trainable=True)
+		beta = tf.get_variable(self.name_+"_beta", shape[-1], initializer=tf.constant_initializer(0.0), trainable=True)
 		moving_avg = tf.get_variable(self.name_+"_moving_avg", shape[-1], initializer=tf.constant_initializer(0.0), trainable=False)
 		moving_var = tf.get_variable(self.name_+"_moving_var", shape[-1], initializer=tf.constant_initializer(1.0), trainable=False)
 		
@@ -370,10 +380,10 @@ class BatchNorm2d(tf.keras.Model):
 			avg = moving_avg
 			var = moving_var
 		with tf.control_dependencies(control_inputs):
-			outputs_mean = tf.nn.batch_normalization(inputs_mean, avg, var, offset=self.beta, scale=self.gamma, variance_epsilon=self.eps)
+			outputs_mean = tf.nn.batch_normalization(inputs_mean, avg, var, offset=beta, scale=gamma, variance_epsilon=self.eps)
 			# varGamma = tf.expand_dims(gamma,0)
 			outputs_variance = tf.nn.batch_normalization(inputs_variance, moving_avg_var,
-				moving_var_var, beta_var, scale=self.gamma**2, variance_epsilon=self.eps)
+				moving_var_var, beta_var, scale=gamma**2, variance_epsilon=self.eps)
 		return outputs_mean, outputs_variance
 
 
