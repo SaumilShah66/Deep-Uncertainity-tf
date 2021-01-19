@@ -34,13 +34,18 @@ Implementation of custom layers with 2 inputs have been completed for-
 ## Result
 We were able to reproduce the results on CIFAR10 dataset from the original paper Table III.
 
+<p align="center">
+<img src="https://github.com/SaumilShah66/Deep-Uncertainity-tf/blob/ModelDev/images/table3.png" width = 500>
+</p>
 
 
 ## Sample Testing
 
 The below image shows a real good example of the use of this model. This image of frog was one of the top 5% error. Without the proposed model, ResNet18 model predicts it as a dog with high confidence, but ResNet18 with ADF layers gives all the predictions below the probability of 0.4, which says that model is quite uncertain about what the image is.
 
-
+<p align="center">
+<img src="https://github.com/SaumilShah66/Deep-Uncertainity-tf/blob/ModelDev/images/frog.png" width = 500>
+</p>
 
 ## Download
 ```
