@@ -1,8 +1,8 @@
-# Deep-Uncertainity-TensorFlow
+# Deep Learning Uncertainty Prediction-TensorFlow
 
 Implemented the paper [A General Framework for Uncertainty Estimation in Deep Learning](http://rpg.ifi.uzh.ch/docs/RAL20_Loquercio.pdf) in Tensorflow. Custom layers are defiend using base class of __tf.keras.Model__ to define the Assumed Density  Filtering (ADF) layers.<br>
 
-ADF laers take 2 inputs [mean, variance]. Here __mean__ refers to the input training data. __variance__ is randomly initialized and is then trained, Variance is dependant on square of network weights (of training data). Mean and Variance affect each other in the MaxPool, ReLU and Conv2D layers.<br>
+ADF layers take 2 inputs [mean, variance]. Here __mean__ refers to the input training data. __variance__ is randomly initialized and is then trained, Variance is dependant on square of network weights (of training data). Mean and Variance affect each other in the MaxPool, ReLU and Conv2D layers.<br>
 
 As per the [paper](http://rpg.ifi.uzh.ch/docs/RAL20_Loquercio.pdf), the proposed method is not mathematically stable and may lead to __NAN__ outputs. Hence initial training is to be done with a regular model (non-adf), and then to be __transfer learning to be initiated with ADF__.<br>
 
