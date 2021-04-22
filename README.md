@@ -50,6 +50,7 @@ The below image shows a real good example of the use of this model. This image o
 ## Download
 ```
 $ git clone https://github.com/SaumilShah66/Deep-Uncertainity-tf.git
+$ git checkout ModelDev
 ```
 Download CIFAR10 dataset
 ```
