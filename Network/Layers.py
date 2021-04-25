@@ -1,7 +1,7 @@
 import tensorflow as tf
 import numpy as np
 from numbers import Number
-from maths import normpdf, normcdf
+from Network.maths import normpdf, normcdf
 # from tensorflow.python.keras import backend as K
 from tensorflow.python.training import moving_averages
 from tensorflow.python.keras.layers.convolutional import Conv

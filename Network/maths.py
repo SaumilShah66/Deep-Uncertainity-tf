@@ -16,4 +16,6 @@ def _normal_log_pdf(value, mu, stddev, dtype=tf.float32):
 
 # Tested against Matlab: Works correctly!
 def normpdf(value, mu=0.0, stddev=1.0):
+	# var = std**2
+	# pdf(x, mu, std) = ( 1/[sqrt(2pi) * std] ) * e^(- (x-mu)/(2*var) )
     return tf.exp(_normal_log_pdf(value, mu, stddev))

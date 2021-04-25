@@ -13,8 +13,8 @@ University of Maryland, College Park
 import tensorflow as tf
 import sys
 import numpy as np
-import ADFLayers as ADF
-import Layers as Layers
+import Network.ADFLayers as ADF
+import Network.Layers as Layers
 # Don't generate pyc codes
 sys.dont_write_bytecode = True
 
@@ -116,4 +116,4 @@ class CIFAR_ADF():
         prLogits = net1[0]
         prSoftMax = self.soft(*net1) 
         # prSoftMax = tf.nn.softmax(logits = prLogits)
-        return prLogits, prSoftMax[0], prSoftMax[1], net1[0], net1[1], self.conv1.weights_
+        return prLogits, prSoftMax[0]

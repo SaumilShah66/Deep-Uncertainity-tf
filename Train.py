@@ -28,10 +28,10 @@ import os
 import glob
 import Misc.ImageUtils as iu
 import random
-from skimage import data, exposure, img_as_float
+# from skimage import data, exposure, img_as_float
 import matplotlib.pyplot as plt
-from Network.Network import CIFARNormal
-# from Network.NetworkADF import CIFAR_ADF
+# from Network.Network import CIFARNormal
+from Network.NetworkADF import CIFAR_ADF
 # from Network.NetworkADF_NOBN import CIFAR_ADF
 # from Network.RESnet import CIFAR10Model
 # from Network.DenseNet import CIFAR10Model
@@ -129,10 +129,10 @@ def TrainOperation(ImgPH, VarPH, LabelPH, DirNamesTrain, TrainLabels, NumTrainSa
 	Saves Trained network in CheckPointPath and Logs to LogsPath
 	"""      
 	# Predict output with forward pass
-	# cifar = CIFAR_ADF()
-	cifar = CIFARNormal(training=True)
-	prLogits, prSoftMax = cifar.network(ImgPH)
-	# prLogits, prSoftMax = cifar.network(ImgPH, VarPH)
+	cifar = CIFAR_ADF(training=True)
+	# cifar = CIFARNormal(training=True)
+	# prLogits, prSoftMax = cifar.network(ImgPH)
+	prLogits, prSoftMax = cifar.network(ImgPH, VarPH)
 
 	with tf.name_scope('TrainingLoss'):
 		train_cross_entropy = tf.nn.softmax_cross_entropy_with_logits(labels = LabelPH, logits = prLogits)

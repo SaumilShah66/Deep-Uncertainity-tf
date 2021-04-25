@@ -14,7 +14,7 @@ import os
 import cv2
 import numpy as np
 import random
-import skimage
+# import skimage
 import PIL
 import sys
 # Don't generate pyc codes

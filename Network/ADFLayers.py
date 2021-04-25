@@ -1,9 +1,10 @@
 import tensorflow as tf
 import numpy as np
 from numbers import Number
-from maths import normpdf, normcdf
+from Network.maths import normpdf, normcdf
 # from tensorflow.python.keras import backend as K
 from tensorflow.python.keras.layers.convolutional import Conv
+from tensorflow.python.training import moving_averages
 #########################
 ## start interpolation.py
 #########################
@@ -131,30 +132,45 @@ class LeakyReLU(tf.keras.Model):
 		super(LeakyReLU, self).__init__()
 		self._keep_variance_fn = keep_variance_fn
 		self._negative_slope = negative_slope
-		self.dtype = dtpe
+		self.dtype = dtype
+		self.relu_layer = ReLU(keep_variance_fn = keep_variance_fn, dtype = self.dtype)
 
 	def call(self, features_mean, features_variance):
-		features_stddev = tf.cast(tf.sqrt(features_variance), self.dtype)
-		div = features_mean / features_stddev
-		pdf = normpdf(div)
-		cdf = normcdf(div)
-		negative_cdf = 1.0 - cdf
-		mu_cdf = features_mean * cdf
-		stddev_pdf = features_stddev * pdf
-		squared_mean_variance = features_mean ** 2 + features_variance
-		mean_stddev_pdf = features_mean * stddev_pdf
-		mean_r = mu_cdf + stddev_pdf
-		variance_r = squared_mean_variance * cdf + mean_stddev_pdf - mean_r ** 2
-		mean_n = - features_mean * negative_cdf + stddev_pdf
-		variance_n = squared_mean_variance * negative_cdf - mean_stddev_pdf - mean_n ** 2
-		covxy = - mean_r * mean_n
-		outputs_mean = mean_r - self._negative_slope * mean_n
-		outputs_variance = variance_r \
-						   + self._negative_slope * self._negative_slope * variance_n \
-						   - 2.0 * self._negative_slope * covxy
+		relu_mu1, relu_var1 = self.relu_layer(features_mean, features_variance)
+		relu_mu2, relu_var2 = self.relu_layer(-features_mean, features_variance)
+
+		output_mean = relu_mu1 - tf.multiply(self.negative_slope, relu_mu2)
+
+		output_variance = relu_var1 + tf.multiply(self.negative_slope**2, relu_var2) \
+						+ tf.multiply(self.negative_slope*2, relu_mu2*relu_mu2) 
+
 		if self._keep_variance_fn is not None:
 			outputs_variance = self._keep_variance_fn(outputs_variance)
 		return outputs_mean, outputs_variance
+
+
+	# def call(self, features_mean, features_variance):
+	# 	features_stddev = tf.cast(tf.sqrt(features_variance), self.dtype)
+	# 	div = features_mean / features_stddev
+	# 	pdf = normpdf(div)
+	# 	cdf = normcdf(div)
+	# 	negative_cdf = 1.0 - cdf
+	# 	mu_cdf = features_mean * cdf
+	# 	stddev_pdf = features_stddev * pdf
+	# 	squared_mean_variance = features_mean ** 2 + features_variance
+	# 	mean_stddev_pdf = features_mean * stddev_pdf
+	# 	mean_r = mu_cdf + stddev_pdf
+	# 	variance_r = squared_mean_variance * cdf + mean_stddev_pdf - mean_r ** 2
+	# 	mean_n = - features_mean * negative_cdf + stddev_pdf
+	# 	variance_n = squared_mean_variance * negative_cdf - mean_stddev_pdf - mean_n ** 2
+	# 	covxy = - mean_r * mean_n
+	# 	outputs_mean = mean_r - self._negative_slope * mean_n
+	# 	outputs_variance = variance_r \
+	# 					   + self._negative_slope * self._negative_slope * variance_n \
+	# 					   - 2.0 * self._negative_slope * covxy
+	# 	if self._keep_variance_fn is not None:
+	# 		outputs_variance = self._keep_variance_fn(outputs_variance)
+	# 	return outputs_mean, outputs_variance
 
 
 class Dropout(tf.keras.Model):
@@ -372,7 +388,7 @@ class BatchNorm2d(tf.keras.Model):
 		control_inputs = []
 		if self.isTraining:
 			# tf.nn.moments == Calculate the mean and the variance of the tensor x
-			avg, var = tf.nn.moments(inputs_mean, range(len(shape)-1))
+			avg, var = tf.nn.moments(inputs_mean, list(range(len(shape)-1)))
 			update_moving_avg = moving_averages.assign_moving_average(moving_avg, avg, self.decay)
 			update_moving_var = moving_averages.assign_moving_average(moving_var, var, self.decay)
 			control_inputs = [update_moving_avg, update_moving_var]
