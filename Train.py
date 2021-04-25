@@ -25,6 +25,7 @@ except:
 	sys.path.remove(sys.path[2])
 	import cv2
 import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 import glob
 import Misc.ImageUtils as iu
 import random
