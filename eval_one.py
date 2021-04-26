@@ -25,10 +25,11 @@ except:
 	sys.path.remove(sys.path[2])
 	import cv2
 import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 import glob
 import Misc.ImageUtils as iu
 import random
-from skimage import data, exposure, img_as_float
+# from skimage import data, exposure, img_as_float
 import matplotlib.pyplot as plt
 from Network.NetworkADF import CIFAR_ADF
 # from Network.RESnet import CIFAR10Model
@@ -100,7 +101,7 @@ def TestOperation(ImgPH, VarPH, ImageSize, ModelPath, name, method):
     Length = ImageSize[0]
     cifar = CIFAR_ADF()
     # prLogits, prSoftMaxS, Variances = cifar.network(ImgPH, VarPH)
-    prLogits, prSoftMaxS, finalVar, Means, Variances, wghts = cifar.network(ImgPH, VarPH)
+    prLogits, prSoftMaxS = cifar.network(ImgPH, VarPH)
     Saver = tf.train.Saver()
     with tf.Session() as sess:
         Saver.restore(sess, ModelPath)
@@ -110,23 +111,24 @@ def TestOperation(ImgPH, VarPH, ImageSize, ModelPath, name, method):
         FeedDict = {ImgPH: Img, VarPH: Var}
         
         # PredT, var = sess.run([prSoftMaxS, Variances], FeedDict)
-        PredT, fvar, mn, var , whts = sess.run([prSoftMaxS, finalVar, Means, Variances, wghts], FeedDict)
+        PredT= sess.run(prSoftMaxS, FeedDict)
         #PredT = np.argmax(PredT)
             #var = var.ravel()[PredT]
-        print("With mean -- ", PredT)
-	print("With Variance -- ",fvar)
-        PredT = np.argmax(PredT)
-        print("Prediction is -- ",PredT)
+        # print("With mean -- ", PredT[0])
+        # print()
+        # print("With Variance -- ",PredT[1])
+        PredT_class = np.argmax(PredT[0])
+        print("Prediction is -- ",PredT_class)
+        print("Prediction uncertainty -- ",PredT[1][0][PredT_class])
             
-        
 def main():
     
     Parser = argparse.ArgumentParser()
-    Parser.add_argument('--ModelPath', dest='ModelPath', default='../New/', help='Path to load latest model from, Default:ModelPath')
+    Parser.add_argument('--ModelPath', dest='ModelPath', default='../Checkpoints/', help='Path to load latest model from, Default:ModelPath')
     Parser.add_argument('--LabelsPath', dest='LabelsPath', default='./TxtFiles/LabelsTest.txt', help='Path of labels file, Default:./TxtFiles/LabelsTest.txt')
-    Parser.add_argument('--Epochs', dest='Epochs', default=82, help='Path of labels file, Default:./TxtFiles/LabelsTest.txt')
-    Parser.add_argument('--ImagePath', default="../Trial/Changed/")
-    Parser.add_argument('--Name', default="18_1.png")
+    Parser.add_argument('--Epochs', dest='Epochs', default=0, help='Path of labels file, Default:./TxtFiles/LabelsTest.txt')
+    Parser.add_argument('--ImagePath', default="../CIFAR10/Test/")
+    Parser.add_argument('--Name', default="54.png")
     Parser.add_argument('--meth', type=int, default=0, help='image std method')
     
     Args = Parser.parse_args()

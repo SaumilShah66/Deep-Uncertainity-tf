@@ -89,8 +89,7 @@ class MaxPool2d(tf.keras.Model):
 		mu_b = input_mean[:, :,1::2, :]
 		var_a = input_variance[:, :, 0::2, :]
 		var_b = input_variance[:, :, 1::2, :]
-		output_mean, output_variance = self._max_pool_internal(
-			mu_a, mu_b, var_a, var_b)
+		output_mean, output_variance = self._max_pool_internal(mu_a, mu_b, var_a, var_b)
 		return output_mean, output_variance
 
 	def _max_pool_2x1(self, input_mean, input_variance):
@@ -98,8 +97,7 @@ class MaxPool2d(tf.keras.Model):
 		mu_b = input_mean[:, 1::2, :, :]
 		var_a = input_variance[:, 0::2, :, :]
 		var_b = input_variance[:, 1::2, :, :]
-		output_mean, output_variance = self._max_pool_internal(
-			mu_a, mu_b, var_a, var_b)
+		output_mean, output_variance = self._max_pool_internal(mu_a, mu_b, var_a, var_b)
 		return output_mean, output_variance
 
 	def call(self, input_mean, input_variance):
@@ -399,12 +397,12 @@ class BatchNorm2d(tf.keras.Model):
 			outputs_mean = tf.nn.batch_normalization(inputs_mean, avg, var, offset=beta, scale=gamma, variance_epsilon=self.eps)
 			# varGamma = tf.expand_dims(gamma,0)
 			outputs_variance = tf.nn.batch_normalization(inputs_variance, moving_avg_var,
-				moving_var_var, beta_var, scale=gamma**2, variance_epsilon=self.eps)
+								moving_var_var, beta_var, scale=gamma**2, variance_epsilon=self.eps)
 		return outputs_mean, outputs_variance
 
 
 class Softmax(tf.keras.Model):
-	def __init__(self, axis=0, keep_variance_fn=None):
+	def __init__(self, axis=-1, keep_variance_fn=None):
 		super(Softmax, self).__init__()
 		self.axis = axis
 		self._keep_variance_fn = keep_variance_fn

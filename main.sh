@@ -1,1 +1,1 @@
-python Train.py --Lr=0.001 --MiniBatchSize=128 --NumEpochs=50 --LoadCheckPoint=1
+python3 Train.py --Lr=0.001 --MiniBatchSize=128 --NumEpochs=50 --LoadCheckPoint=1
